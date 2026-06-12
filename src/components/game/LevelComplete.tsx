@@ -15,6 +15,14 @@ interface LevelCompleteProps {
 export function LevelComplete({ level, score, stars, onNext }: LevelCompleteProps) {
   const isRequirementMet = stars >= 2;
 
+  // Feedback based on stars
+  const getFeedbackMessage = () => {
+    if (stars === 3) return "EXCELLENT";
+    if (stars === 2) return "NICE";
+    if (stars === 1) return "GOOD";
+    return "INSUFFICIENT MERIT";
+  };
+
   return (
     <div className="absolute inset-0 z-[110] flex items-center justify-center p-6 bg-primary/20 backdrop-blur-xl animate-in fade-in zoom-in duration-500">
       <Card className="w-full max-w-sm bg-card border-primary/50 shadow-[0_0_50px_rgba(37,99,235,0.4)] overflow-hidden">
@@ -41,7 +49,7 @@ export function LevelComplete({ level, score, stars, onNext }: LevelCompleteProp
           </div>
 
           <p className="text-primary-foreground/60 text-xs font-bold tracking-[0.3em] uppercase mt-4">
-            {stars === 3 ? "PERFECT SCORE!" : stars >= 2 ? "RANK ACHIEVED" : "INSUFFICIENT MERIT"}
+            {getFeedbackMessage()}
           </p>
         </div>
 
