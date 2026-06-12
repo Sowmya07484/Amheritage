@@ -1,4 +1,3 @@
-
 "use client";
 
 import React from 'react';
@@ -10,20 +9,17 @@ interface CharacterProps {
 
 /**
  * Character component using a spritesheet for animation.
- * The spritesheet should be saved as public/trump-sprite.png
  */
 export function Character({ isJumping, isMoving }: CharacterProps) {
   return (
-    <div className={`relative w-32 h-32 transition-transform duration-200 ${isJumping ? '-translate-y-20' : ''}`}>
+    <div className={`relative w-28 h-28 sm:w-32 sm:h-32 transition-transform duration-200 ${isJumping ? '-translate-y-20' : ''}`}>
       {/* Shadow Effect */}
-      <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-24 h-4 shadow-oval transition-opacity duration-300 ${isJumping ? 'opacity-20 scale-75' : 'opacity-100 scale-100'}`} />
+      <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-20 h-3 shadow-oval transition-opacity duration-300 ${isJumping ? 'opacity-20 scale-75' : 'opacity-100 scale-100'}`} />
 
       {/* Sprite Container */}
       <div 
         className="relative w-full h-full overflow-hidden"
         style={{
-          // We use the image provided. Since it's a 4-frame strip, 
-          // we animate the background position.
           backgroundImage: 'url(/trump-sprite.png)',
           backgroundSize: '400% 100%',
           backgroundRepeat: 'no-repeat',
@@ -40,7 +36,6 @@ export function Character({ isJumping, isMoving }: CharacterProps) {
         }
       `}</style>
       
-      {/* Fallback Label if image missing */}
       <div className="hidden">
         <img src="/trump-sprite.png" alt="Patriot Runner" />
       </div>

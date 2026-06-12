@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { HUD } from '@/components/game/HUD';
 import { GameWorld } from '@/components/game/GameWorld';
 import { QuizOverlay } from '@/components/game/QuizOverlay';
@@ -22,7 +22,9 @@ export default function HeritageSprint() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(12);
 
-  // Input Handlers
+  // Swipe Detection Refs
+  const touchStartPos = useRef<{ x: number, y: number } | null>(null);
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
     if (e.key === 'ArrowLeft') setLane(prev => Math.max(0, prev - 1) as Lane);
@@ -34,19 +36,34 @@ export default function HeritageSprint() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
-    const touchX = e.touches[0].clientX;
-    const width = window.innerWidth;
-    if (touchX < width / 3) setLane(0);
-    else if (touchX < (width * 2) / 3) setLane(1);
-    else setLane(2);
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartPos.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    };
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || !isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
+
+    const touchEndPosX = e.changedTouches[0].clientX;
+    const diffX = touchEndPosX - touchStartPos.current.x;
+    
+    // Minimum distance for a swipe
+    if (Math.abs(diffX) > 30) {
+      if (diffX > 0) {
+        setLane(prev => Math.min(2, prev + 1) as Lane);
+      } else {
+        setLane(prev => Math.max(0, prev - 1) as Lane);
+      }
+    }
+    
+    touchStartPos.current = null;
   };
 
   const onCollision = useCallback(() => {
-    // Collision now just penalizes speed
     setSpeed(prev => Math.max(8, prev - 3));
-    setTimeout(() => setSpeed(prev => Math.min(18, prev + 2)), 1500);
+    // Brief visual feedback or slow down
   }, []);
 
   const onCoinCollected = useCallback(() => {
@@ -73,15 +90,15 @@ export default function HeritageSprint() {
       });
       setSpeed(prev => Math.min(25, prev + 2));
 
-      // Check for level complete (every 5 questions)
       if (nextTotal % 5 === 0) {
         setIsLevelComplete(true);
       }
     } else {
-      // Wrong answer just increments total without rewards
       updateState({
         questionsTotal: state.questionsTotal + 1
       });
+      // Wrong answer - slow down as penalty
+      setSpeed(prev => Math.max(8, prev - 2));
     }
   }, [state, updateState]);
 
@@ -90,7 +107,6 @@ export default function HeritageSprint() {
     const nextLevel = state.level + 1;
     updateState({ level: nextLevel });
     
-    // Check for character unlock every 5 levels
     if (nextLevel % 5 === 1 && nextLevel > 1) {
       setIsUnlockActive(true);
     }
@@ -102,6 +118,8 @@ export default function HeritageSprint() {
     setIsQuizActive(false);
     setIsLevelComplete(false);
     setIsUnlockActive(false);
+    setLane(1);
+    setSpeed(12);
     updateState({ score: 0, questionsCorrect: 0, questionsTotal: 0 });
   };
 
@@ -109,8 +127,9 @@ export default function HeritageSprint() {
 
   return (
     <main 
-      className="relative w-full h-svh bg-background overflow-hidden font-headline"
-      onTouchStart={handleTouchStart}
+      className="relative w-full h-svh bg-background overflow-hidden font-headline select-none"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       {!isPlaying && !isGameOver && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xl p-8">
@@ -190,7 +209,6 @@ export default function HeritageSprint() {
         />
       )}
 
-      {/* Decorative Overlays */}
       <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none opacity-80" />
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-background to-transparent pointer-events-none opacity-60" />
     </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { Lane, Obstacle, Collectible } from '@/lib/game-types';
 import { Character } from './Character';
 
@@ -74,6 +74,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       // Update obstacles
       obstaclesRef.current.forEach(obs => {
         obs.z -= moveStep;
+        // Collision check - sensitive range for lane
         if (!obs.passed && obs.z < 80 && obs.z > 30 && obs.lane === lane) {
           obs.passed = true;
           onCollision();
@@ -84,6 +85,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       // Update collectibles
       collectiblesRef.current.forEach(col => {
         col.z -= moveStep;
+        // Collection check
         if (!col.collected && col.z < 80 && col.z > 30 && col.lane === lane) {
           col.collected = true;
           onCoinCollected();
@@ -170,7 +172,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
 
         ctx.fillStyle = obs.type === 'roadblock' ? '#EF4444' : '#FFFFFF';
         if (obs.type === 'flag') {
-          // American Flag Obstacle
           ctx.fillStyle = '#1E3A8A';
           ctx.fillRect(laneX - 25 * obsScale, obsY - 60 * obsScale, 50 * obsScale, 30 * obsScale);
           ctx.fillStyle = '#EF4444';
@@ -196,14 +197,14 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         className="w-full h-full object-cover"
       />
       
-      {/* Character Overlay */}
+      {/* Character Container - handles horizontal transition */}
       <div 
-        className="absolute bottom-16 left-1/2 -translate-x-1/2 transition-all duration-300 flex justify-center items-end"
+        className="absolute bottom-16 left-1/2 -translate-x-1/2 transition-all duration-300 ease-out flex justify-center items-end"
         style={{
-          transform: `translateX(calc(-50% + ${(lane - 1) * 33}%))`
+          transform: `translateX(calc(-50% + ${(lane - 1) * 33}vw))`
         }}
       >
-        <Character type="The Patriot" isMoving={!isPaused} />
+        <Character isMoving={!isPaused} />
       </div>
 
       {/* Speed lines effect */}
