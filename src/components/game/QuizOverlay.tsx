@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { generateHeritageQuizQuestion, GenerateHeritageQuizQuestionOutput } from '@/ai/flows/generate-heritage-quiz-question';
 import { THEMATIC_ERAS, QUESTIONS_PER_LEVEL } from '@/lib/game-types';
-import { STATIC_HERITAGE_QUESTIONS } from '@/lib/static-questions';
+import { STATIC_HERITAGE_QUESTIONS, StaticQuestion } from '@/lib/static-questions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -29,17 +29,21 @@ export function QuizOverlay({ level, questionNumber, onAnswer }: QuizOverlayProp
     async function fetchQuestion() {
       setLoading(true);
       
-      const staticIndex = Math.floor(Math.random() * STATIC_HERITAGE_QUESTIONS.length);
-      const useStatic = Math.random() > 0.3 || level <= 3;
+      // Filter static questions by level if possible
+      const levelAppropriateQuestions = STATIC_HERITAGE_QUESTIONS.filter(q => q.level === level);
+      const questionPool = levelAppropriateQuestions.length > 0 ? levelAppropriateQuestions : STATIC_HERITAGE_QUESTIONS;
+      
+      const staticIndex = Math.floor(Math.random() * questionPool.length);
+      const useStatic = Math.random() > 0.2 || level <= 3; // Prefer static for early levels or high chance
 
-      if (useStatic && STATIC_HERITAGE_QUESTIONS.length > 0) {
-        const q = STATIC_HERITAGE_QUESTIONS[staticIndex];
+      if (useStatic && questionPool.length > 0) {
+        const q = questionPool[staticIndex];
         setQuestion({
           question: q.question,
           options: q.options as [string, string, string, string],
           correctAnswer: q.correctAnswer,
           explanation: q.explanation,
-          difficulty: 'Medium',
+          difficulty: level > 7 ? 'Hard' : level > 4 ? 'Medium' : 'Easy',
           category: q.category
         });
         setLoading(false);
@@ -49,15 +53,15 @@ export function QuizOverlay({ level, questionNumber, onAnswer }: QuizOverlayProp
           const result = await generateHeritageQuizQuestion({ level, thematicEra: randomEra });
           setQuestion(result);
         } catch (e) {
-          console.error("Failed to load question", e);
-          const q = STATIC_HERITAGE_QUESTIONS[0];
+          // Fallback to pool if AI fails
+          const fallbackQ = questionPool[0];
           setQuestion({
-            question: q.question,
-            options: q.options as [string, string, string, string],
-            correctAnswer: q.correctAnswer,
-            explanation: q.explanation,
+            question: fallbackQ.question,
+            options: fallbackQ.options as [string, string, string, string],
+            correctAnswer: fallbackQ.correctAnswer,
+            explanation: fallbackQ.explanation,
             difficulty: 'Easy',
-            category: q.category
+            category: fallbackQ.category
           });
         } finally {
           setLoading(false);
