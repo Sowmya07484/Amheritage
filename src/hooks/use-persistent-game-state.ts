@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -44,6 +45,9 @@ export function usePersistentGameState() {
     setState(prev => {
       const newState = { ...prev, ...updates };
       
+      // Ensure score is never negative
+      if (newState.score < 0) newState.score = 0;
+
       // Update character based on level
       const currentLevel = newState.level;
       let newChar = prev.character;
@@ -74,7 +78,7 @@ export function usePersistentGameState() {
   }, []);
 
   const addScore = useCallback((amount: number) => {
-    setState(prev => ({ ...prev, score: prev.score + amount }));
+    setState(prev => ({ ...prev, score: Math.max(0, prev.score + amount) }));
   }, []);
 
   const resetProgress = useCallback(() => {

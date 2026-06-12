@@ -63,7 +63,8 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       const dt = time - lastFrameTimeRef.current;
       lastFrameTimeRef.current = time;
 
-      if (dt > 100) { 
+      // Prevent negative or extreme jumps on tab focus/unpause
+      if (dt > 100 || dt < 0) { 
         frameId = requestAnimationFrame(render);
         return;
       }
@@ -73,6 +74,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       
       obstaclesRef.current.forEach(obs => {
         obs.z -= moveStep;
+        // Adjusted collision box for better "snappy" feel
         if (!obs.passed && obs.z < 250 && obs.z > 100 && obs.lane === lane) {
           obs.passed = true;
           onCollision();
@@ -82,7 +84,8 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
 
       collectiblesRef.current.forEach(col => {
         col.z -= moveStep;
-        if (!col.collected && col.z < 350 && col.z > 50 && Math.abs(col.lane - lane) < 0.7) {
+        // Increased collection hitbox width for easier coin pickup on click
+        if (!col.collected && col.z < 350 && col.z > 50 && Math.abs(col.lane - lane) < 0.8) {
           col.collected = true;
           onCoinCollected();
         }
@@ -188,9 +191,9 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         className="w-full h-full object-cover"
       />
       
-      {/* Character Hero - Visual shift synced to buttons with percentage-based lane positioning */}
+      {/* Character Hero - Visual shift synced to buttons with discrete lane positioning */}
       <div 
-        className="absolute bottom-24 inset-x-0 h-40 transition-all duration-300 ease-out flex justify-center items-end pointer-events-none z-20"
+        className="absolute bottom-24 inset-x-0 h-40 transition-all duration-200 ease-out flex justify-center items-end pointer-events-none z-20"
         style={{
           transform: `translateX(${(lane - 1) * 33.33}%)`
         }}
