@@ -1,17 +1,16 @@
 "use client";
 
 import React from 'react';
-import { Heart, Coins, Trophy, Zap, Star } from 'lucide-react';
+import { Coins, Zap, Star } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { GameState } from '@/lib/game-types';
 
 interface HUDProps {
   state: GameState;
-  regenTimeFormatted: string;
   isPaused?: boolean;
 }
 
-export function HUD({ state, regenTimeFormatted, isPaused }: HUDProps) {
+export function HUD({ state, isPaused }: HUDProps) {
   const levelProgress = (state.questionsTotal % 5) * 20;
 
   return (
@@ -19,19 +18,6 @@ export function HUD({ state, regenTimeFormatted, isPaused }: HUDProps) {
       <div className="flex justify-between items-start">
         {/* Stats Left */}
         <div className="flex flex-col gap-2">
-          <div className="flex gap-2 items-center bg-black/60 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 shadow-lg">
-            {[...Array(3)].map((_, i) => (
-              <Heart 
-                key={i} 
-                className={`w-6 h-6 transition-all duration-300 drop-shadow-sm ${i < state.hearts ? 'fill-accent text-accent animate-pulse' : 'text-white/10 fill-transparent'}`} 
-              />
-            ))}
-            {state.hearts < 3 && (
-              <span className="text-xs font-bold text-white/80 ml-2 font-mono">
-                {regenTimeFormatted}
-              </span>
-            )}
-          </div>
           <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 backdrop-blur-md rounded-2xl border border-yellow-500/40 shadow-lg self-start">
             <Coins className="w-5 h-5 text-yellow-400 fill-yellow-400" />
             <span className="text-lg font-black text-white">{state.coins}</span>

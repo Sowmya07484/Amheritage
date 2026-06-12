@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -14,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Play, Flag, Star } from 'lucide-react';
 
 export default function HeritageSprint() {
-  const { state, updateState, loseHeart, addScore, earnCoins, isLoaded, regenTimeRemaining } = usePersistentGameState();
+  const { state, updateState, addScore, earnCoins, isLoaded } = usePersistentGameState();
   const [lane, setLane] = useState<Lane>(1);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isQuizActive, setIsQuizActive] = useState(false);
@@ -45,22 +44,15 @@ export default function HeritageSprint() {
   };
 
   const onCollision = useCallback(() => {
-    loseHeart();
+    // Collision now just penalizes speed
     setSpeed(prev => Math.max(8, prev - 3));
     setTimeout(() => setSpeed(prev => Math.min(18, prev + 2)), 1500);
-  }, [loseHeart]);
+  }, []);
 
   const onCoinCollected = useCallback(() => {
     earnCoins(1);
     addScore(10);
   }, [earnCoins, addScore]);
-
-  useEffect(() => {
-    if (isLoaded && state.hearts <= 0 && isPlaying) {
-      setIsGameOver(true);
-      setIsPlaying(false);
-    }
-  }, [state.hearts, isLoaded, isPlaying]);
 
   const onCheckpoint = useCallback(() => {
     setIsQuizActive(true);
@@ -86,12 +78,12 @@ export default function HeritageSprint() {
         setIsLevelComplete(true);
       }
     } else {
-      loseHeart();
+      // Wrong answer just increments total without rewards
       updateState({
         questionsTotal: state.questionsTotal + 1
       });
     }
-  }, [state, updateState, loseHeart]);
+  }, [state, updateState]);
 
   const handleNextLevel = () => {
     setIsLevelComplete(false);
@@ -105,7 +97,6 @@ export default function HeritageSprint() {
   };
 
   const startNewGame = () => {
-    if (state.hearts <= 0) return;
     setIsPlaying(true);
     setIsGameOver(false);
     setIsQuizActive(false);
@@ -113,10 +104,6 @@ export default function HeritageSprint() {
     setIsUnlockActive(false);
     updateState({ score: 0, questionsCorrect: 0, questionsTotal: 0 });
   };
-
-  const regenMinutes = Math.floor(regenTimeRemaining / 60000);
-  const regenSeconds = Math.floor((regenTimeRemaining % 60000) / 1000);
-  const formattedRegen = `${regenMinutes}:${regenSeconds.toString().padStart(2, '0')}`;
 
   if (!isLoaded) return null;
 
@@ -140,7 +127,6 @@ export default function HeritageSprint() {
           <Button 
             className="w-full max-w-xs h-20 bg-primary hover:bg-primary/90 text-white font-black italic text-3xl rounded-3xl shadow-2xl border-b-8 border-primary/60 group transition-all transform hover:scale-105 active:scale-95"
             onClick={startNewGame}
-            disabled={state.hearts <= 0}
           >
             <Play className="w-8 h-8 mr-3 fill-white" />
             RUN NOW
@@ -158,19 +144,11 @@ export default function HeritageSprint() {
                 <p className="text-xl font-black text-white">{state.level}</p>
              </div>
           </div>
-
-          {state.hearts <= 0 && (
-            <div className="mt-8 flex flex-col items-center gap-2 p-4 bg-white/5 rounded-2xl border border-white/10">
-              <p className="text-accent font-bold uppercase tracking-widest text-sm animate-pulse">Out of Hearts</p>
-              <p className="text-white/60 font-medium text-xs">Regenerating: {formattedRegen}</p>
-            </div>
-          )}
         </div>
       )}
 
       <HUD 
         state={state} 
-        regenTimeFormatted={formattedRegen} 
         isPaused={isQuizActive || isLevelComplete || isUnlockActive || !isPlaying} 
       />
 

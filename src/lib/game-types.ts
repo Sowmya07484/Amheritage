@@ -13,8 +13,6 @@ export interface GameState {
   level: number;
   questionsCorrect: number;
   questionsTotal: number;
-  hearts: number;
-  lastHeartRegenTime: number;
   bestScore: number;
   character: CharacterType;
   unlockedBadges: string[];
