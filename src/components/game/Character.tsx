@@ -36,22 +36,30 @@ export function Character({ isJumping, isMoving, isHit, lane, type = 'Donald Tru
             <circle cx="77" cy="28" r="6" fill="#fee2e2" />
           </svg>
         );
-      case 'Ariana Grande':
+      case 'Benjamin Franklin':
         return (
           <svg viewBox="0 0 100 140" className="w-full h-full drop-shadow-[0_20px_20px_rgba(0,0,0,0.8)]">
-            {/* Stage Outfit (Sparkly Lavender) */}
-            <path d="M20,135 L80,135 L78,60 Q78,50 50,50 Q22,50 22,60 Z" fill="#c084fc" stroke="#a855f7" strokeWidth="1" />
-            {/* Sparkles */}
-            <circle cx="40" cy="80" r="1.5" fill="white" className="animate-pulse" />
-            <circle cx="60" cy="100" r="1.5" fill="white" className="animate-pulse" />
+            {/* Coat (Brown) */}
+            <path d="M15,135 L85,135 L82,55 Q82,42 70,35 L30,35 Q18,42 18,55 Z" fill="#78350f" stroke="#451a03" strokeWidth="1" />
             
-            {/* High Ponytail (Signature Look) */}
-            <path d="M45,15 Q50,0 55,15 L65,60 Q55,65 45,60 Z" fill="#451a03" /> {/* The tail */}
-            <path d="M28,35 Q28,15 50,15 Q72,15 72,35 L28,35" fill="#451a03" stroke="#270e01" strokeWidth="1" />
+            {/* White Cravat */}
+            <path d="M38,35 L62,35 L65,55 L35,55 Z" fill="#ffffff" />
             
+            {/* Hair (Balding with sides) */}
+            <path d="M25,35 Q25,15 50,15 Q75,15 75,35 L25,35" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1" />
+            <path d="M25,35 Q20,35 20,45 L30,45 L30,35" fill="#f1f5f9" />
+            <path d="M75,35 Q80,35 80,45 L70,45 L70,35" fill="#f1f5f9" />
+            
+            {/* Spectacles (Glasses) */}
+            <g stroke="#64748b" strokeWidth="1.5" fill="none">
+              <circle cx="40" cy="28" r="6" />
+              <circle cx="60" cy="28" r="6" />
+              <line x1="46" y1="28" x2="54" y2="28" />
+            </g>
+
             {/* Ears */}
-            <circle cx="25" cy="32" r="5" fill="#fdba74" />
-            <circle cx="75" cy="32" r="5" fill="#fdba74" />
+            <circle cx="23" cy="28" r="6" fill="#fee2e2" />
+            <circle cx="77" cy="28" r="6" fill="#fee2e2" />
           </svg>
         );
       case 'Donald Trump':

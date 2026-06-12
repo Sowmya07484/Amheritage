@@ -27,8 +27,15 @@ export function usePersistentGameState() {
         const parsed = JSON.parse(saved);
         // Migration: If user had "The Patriot", convert to "Donald Trump"
         if (parsed.character === 'The Patriot') parsed.character = 'Donald Trump';
-        if (parsed.unlockedCharacters && parsed.unlockedCharacters.includes('The Patriot')) {
-          parsed.unlockedCharacters = parsed.unlockedCharacters.map((c: string) => c === 'The Patriot' ? 'Donald Trump' : c);
+        // Migration: If user had "Ariana Grande", convert to "Benjamin Franklin"
+        if (parsed.character === 'Ariana Grande') parsed.character = 'Benjamin Franklin';
+        
+        if (parsed.unlockedCharacters) {
+          parsed.unlockedCharacters = parsed.unlockedCharacters.map((c: string) => {
+            if (c === 'The Patriot') return 'Donald Trump';
+            if (c === 'Ariana Grande') return 'Benjamin Franklin';
+            return c;
+          });
         }
         setState({ ...INITIAL_STATE, ...parsed });
       } catch (e) {

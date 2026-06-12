@@ -3,7 +3,7 @@ export type Lane = 0 | 1 | 2;
 export type CharacterType = 
   | 'Donald Trump' 
   | 'George Washington' 
-  | 'Ariana Grande';
+  | 'Benjamin Franklin';
 
 export interface GameState {
   score: number;
