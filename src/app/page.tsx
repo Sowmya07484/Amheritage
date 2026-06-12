@@ -85,7 +85,6 @@ export default function HeritageSprint() {
     const nextTotal = state.questionsTotal + 1;
 
     if (nextInLevel >= QUESTIONS_PER_LEVEL) {
-      // End of Level: Calculate Stars
       let stars = 0;
       if (nextCorrect === 10) stars = 3;
       else if (nextCorrect >= 8) stars = 2;
@@ -99,7 +98,7 @@ export default function HeritageSprint() {
 
       updateState({
         questionsInLevel: 0,
-        questionsCorrect: 0, // Reset for next level
+        questionsCorrect: 0,
         questionsTotal: nextTotal,
         score: state.score + (correct ? 100 : 0) + 500,
         starsByLevel: updatedStarsByLevel,
@@ -118,19 +117,14 @@ export default function HeritageSprint() {
   const handleNextLevel = () => {
     const earnedStars = state.starsByLevel[state.level] || 0;
     
-    // Check if player has at least 2 stars to unlock next level
     if (earnedStars < 2) {
-      // For now, if they fail requirement, stay on map or restart level
       setIsLevelComplete(false);
-      setShowMap(true);
-      setIsPlaying(false);
+      startNewGame();
       return;
     }
 
     setIsLevelComplete(false);
     const nextLevel = Math.min(MAX_LEVELS, state.level + 1);
-    
-    // Check if new level triggers a character unlock
     const isUnlockLevel = CHARACTER_PROGRESSION[nextLevel] && CHARACTER_PROGRESSION[nextLevel] !== state.character;
     
     updateState({ level: nextLevel });
@@ -256,6 +250,7 @@ export default function HeritageSprint() {
       {isQuizActive && (
         <QuizOverlay 
           level={state.level} 
+          questionNumber={state.questionsInLevel + 1}
           onAnswer={onQuizAnswer} 
         />
       )}

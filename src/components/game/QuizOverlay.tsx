@@ -1,24 +1,23 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { generateHeritageQuizQuestion, GenerateHeritageQuizQuestionOutput } from '@/ai/flows/generate-heritage-quiz-question';
-import { THEMATIC_ERAS } from '@/lib/game-types';
+import { THEMATIC_ERAS, QUESTIONS_PER_LEVEL } from '@/lib/game-types';
 import { STATIC_HERITAGE_QUESTIONS } from '@/lib/static-questions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Loader2, CheckCircle2, XCircle, Info, Timer } from 'lucide-react';
 
 interface QuizOverlayProps {
   level: number;
+  questionNumber: number;
   onAnswer: (correct: boolean) => void;
 }
 
-const TOTAL_TIME = 10; // 10 seconds as requested
+const TOTAL_TIME = 10; 
 
-export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
+export function QuizOverlay({ level, questionNumber, onAnswer }: QuizOverlayProps) {
   const [question, setQuestion] = useState<GenerateHeritageQuizQuestionOutput | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -67,7 +66,6 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
     fetchQuestion();
   }, [level]);
 
-  // Timer Logic
   useEffect(() => {
     if (loading || selectedOption || !question) return;
 
@@ -75,7 +73,7 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          handleSelect('TIMEOUT_AUTO_FAIL'); // Trigger fail on timeout
+          handleSelect('TIMEOUT_AUTO_FAIL');
           return 0;
         }
         return prev - 1;
@@ -91,14 +89,9 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
     setSelectedOption(option);
     setShowExplanation(true);
     
-    // Slight delay before continuing to allow reading explanation or seeing the result
     setTimeout(() => {
       onAnswer(option === question?.correctAnswer);
     }, 2500);
-  };
-
-  const formatTime = (seconds: number) => {
-    return `${seconds}s`;
   };
 
   const timerPercentage = (timeLeft / TOTAL_TIME) * 100;
@@ -108,7 +101,7 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
       <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-12 h-12 text-primary animate-spin" />
-          <p className="text-xl font-headline font-bold text-white uppercase tracking-tighter">Preparing Heritage Challenge...</p>
+          <p className="text-xl font-headline font-bold text-white uppercase tracking-tighter">Preparing Challenge {questionNumber}...</p>
         </div>
       </div>
     );
@@ -119,7 +112,6 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-500">
       <Card className="w-full max-w-lg bg-card border-white/10 shadow-2xl relative overflow-hidden">
-        {/* Animated Background Progress for Timer */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5">
           <div 
             className={`h-full transition-all duration-1000 ease-linear ${
@@ -134,15 +126,15 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
              <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/5">
                 <Timer className={`w-4 h-4 ${timeLeft < 4 ? 'text-accent animate-pulse' : 'text-primary'}`} />
                 <span className={`text-sm font-black italic tracking-tighter ${timeLeft < 4 ? 'text-accent' : 'text-white'}`}>
-                  {formatTime(timeLeft)}
+                  {timeLeft}s
                 </span>
              </div>
-             <div className="flex gap-2">
+             <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                  Question {questionNumber}/{QUESTIONS_PER_LEVEL}
+                </span>
                 <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 uppercase tracking-widest text-[8px]">
                   {question.category}
-                </Badge>
-                <Badge variant="outline" className="text-white/40 border-white/10 uppercase tracking-widest text-[8px]">
-                  {question.difficulty}
                 </Badge>
              </div>
           </div>
@@ -192,10 +184,10 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
               <div className="flex items-start gap-3">
                 <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Did you know?</p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Explanation</p>
                   <p className="text-xs text-white/70 leading-relaxed font-medium">
                     {timeLeft === 0 && selectedOption === 'TIMEOUT_AUTO_FAIL' 
-                      ? "Time ran out! You must answer more quickly to protect our heritage."
+                      ? "Time ran out! You must answer more quickly."
                       : question.explanation}
                   </p>
                 </div>
