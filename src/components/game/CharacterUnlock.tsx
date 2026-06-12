@@ -3,7 +3,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Sparkles, Star, UserCheck, Flag } from 'lucide-react';
+import { Sparkles, UserCheck, Flag } from 'lucide-react';
 import { CharacterType } from '@/lib/game-types';
 
 interface CharacterUnlockProps {
@@ -34,7 +34,7 @@ export function CharacterUnlock({ character, onContinue }: CharacterUnlockProps)
       <Card className="w-full max-w-sm bg-gradient-to-b from-card to-background border-primary/40 shadow-[0_0_100px_rgba(37,99,235,0.4)] overflow-hidden">
         <div className="pt-12 pb-8 text-center px-6">
           <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-8 border border-primary/20">
-            <Sparkles className="w-3 h-3" /> Patriot Hero Level Up
+            <Sparkles className="w-3 h-3" /> New Rank Achieved
           </div>
           
           <div className="relative w-56 h-56 mx-auto mb-8 flex items-center justify-center">
@@ -59,7 +59,7 @@ export function CharacterUnlock({ character, onContinue }: CharacterUnlockProps)
             {character}
           </h2>
           <p className="text-white/60 text-[10px] font-bold uppercase tracking-[0.2em] max-w-[240px] mx-auto leading-relaxed">
-            A leader for the people. Your influence unlocks new historical challenges and increases your legacy points.
+            Your persistence strengthens the legacy of liberty. Lead the charge through American history.
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export function CharacterUnlock({ character, onContinue }: CharacterUnlockProps)
             onClick={onContinue}
           >
             <UserCheck className="w-6 h-6 mr-3 stroke-[3px]" />
-            LEAD NOW
+            CONTINUE CAMPAIGN
           </Button>
         </CardFooter>
       </Card>

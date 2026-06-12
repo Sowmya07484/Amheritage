@@ -9,47 +9,47 @@ interface CharacterProps {
 }
 
 /**
- * Character component representing the Patriot Hero (Trump).
- * It uses a 4-frame spritesheet for the running animation.
+ * Character component representing the Patriot Hero from a back-view perspective.
+ * This perspective is essential for the 3D endless runner feel.
+ * It uses a 4-frame spritesheet optimized for a "running away" animation.
  */
 export function Character({ isJumping, isMoving, isHit }: CharacterProps) {
   return (
     <div className={`relative w-28 h-28 sm:w-36 sm:h-36 transition-transform duration-300 ${isJumping ? '-translate-y-24' : ''} ${isHit ? 'animate-pulse opacity-50' : ''}`}>
-      {/* Dynamic Shadow */}
+      {/* Dynamic Perspective Shadow */}
       <div 
-        className={`absolute -bottom-4 left-1/2 -translate-x-1/2 w-20 h-4 bg-black/40 blur-md rounded-[100%] transition-all duration-300 ${
-          isJumping ? 'scale-50 opacity-20' : 'scale-100 opacity-100'
+        className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-16 h-4 bg-black/60 blur-md rounded-[100%] transition-all duration-300 ${
+          isJumping ? 'scale-50 opacity-10' : 'scale-100 opacity-100'
         }`} 
       />
 
-      {/* Hero Sprite Container */}
+      {/* Hero Sprite Container - Back View */}
       <div 
-        className="relative w-full h-full overflow-hidden drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
+        className="relative w-full h-full overflow-hidden drop-shadow-[0_15px_15px_rgba(0,0,0,0.6)]"
         style={{
           backgroundImage: 'url(/trump-sprite.png)',
           backgroundSize: '400% 100%',
           backgroundRepeat: 'no-repeat',
           imageRendering: 'pixelated',
-          animation: isMoving ? 'trump-run 0.4s steps(4) infinite' : 'none',
-          backgroundPosition: '0% 0%'
+          animation: isMoving ? 'trump-run-back 0.45s steps(4) infinite' : 'none',
+          backgroundPosition: '0% 0%',
+          transform: 'scale(1.1)', // Slightly larger to emphasize foreground presence
         }}
       >
-        {/* If image fails, show a patriotic placeholder silhouette */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-           <div className="w-full h-full bg-primary/20 rounded-full blur-2xl" />
-        </div>
+        {/* Glow effect for high-tier feeling */}
+        <div className="absolute inset-0 bg-primary/5 rounded-full blur-3xl opacity-50 pointer-events-none" />
       </div>
 
       <style jsx>{`
-        @keyframes trump-run {
+        @keyframes trump-run-back {
           from { background-position: 0% 0%; }
           to { background-position: 400% 0%; }
         }
       `}</style>
       
-      {/* Hidden preloader for the sprite */}
+      {/* Hidden preloader */}
       <div className="hidden">
-        <img src="/trump-sprite.png" alt="Patriot Hero Runner" />
+        <img src="/trump-sprite.png" alt="Patriot Hero Running Away" />
       </div>
     </div>
   );
