@@ -5,12 +5,15 @@ export type CharacterType =
   | 'Founding Father' 
   | 'Historical Leader' 
   | 'Liberty Belle' 
-  | 'Action Hero';
+  | 'Action Hero'
+  | 'Chief of State'
+  | 'Legendary Hero';
 
 export interface GameState {
   score: number;
   coins: number;
   level: number;
+  questionsInLevel: number;
   questionsCorrect: number;
   questionsTotal: number;
   bestScore: number;
@@ -30,7 +33,7 @@ export interface Obstacle {
   id: string;
   type: 'monument' | 'flag' | 'building' | 'roadblock';
   lane: Lane;
-  z: number; // position along the track
+  z: number; 
   passed: boolean;
 }
 
@@ -51,8 +54,12 @@ export const THEMATIC_ERAS = [
 
 export const CHARACTER_PROGRESSION: Record<number, CharacterType> = {
   1: 'The Patriot',
-  6: 'Founding Father',
-  11: 'Historical Leader',
-  16: 'Liberty Belle',
-  21: 'Action Hero'
+  3: 'Founding Father',
+  5: 'Historical Leader',
+  7: 'Liberty Belle',
+  9: 'Chief of State',
+  10: 'Legendary Hero'
 };
+
+export const MAX_LEVELS = 10;
+export const QUESTIONS_PER_LEVEL = 10;

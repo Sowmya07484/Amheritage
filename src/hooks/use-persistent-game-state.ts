@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { GameState, CharacterType, CHARACTER_PROGRESSION } from '@/lib/game-types';
+import { GameState, CharacterType, CHARACTER_PROGRESSION, QUESTIONS_PER_LEVEL } from '@/lib/game-types';
 
 const INITIAL_STATE: GameState = {
   score: 0,
   coins: 0,
   level: 1,
+  questionsInLevel: 0,
   questionsCorrect: 0,
   questionsTotal: 0,
   bestScore: 0,
-  character: 'Founding Father',
+  character: 'The Patriot',
   unlockedBadges: []
 };
 
@@ -19,7 +20,7 @@ export function usePersistentGameState() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('heritage_sprint_v1');
+    const saved = localStorage.getItem('heritage_sprint_v2');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -33,7 +34,7 @@ export function usePersistentGameState() {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem('heritage_sprint_v1', JSON.stringify(state));
+      localStorage.setItem('heritage_sprint_v2', JSON.stringify(state));
     }
   }, [state, isLoaded]);
 
@@ -42,11 +43,22 @@ export function usePersistentGameState() {
       const newState = { ...prev, ...updates };
       
       // Update character based on level
-      const levelBase = Math.floor((newState.level - 1) / 5) * 5 + 1;
-      const char = CHARACTER_PROGRESSION[levelBase as keyof typeof CHARACTER_PROGRESSION] || 'Founding Father';
-      newState.character = char as CharacterType;
+      const currentLevel = newState.level;
+      let newChar = prev.character;
+      
+      // Find highest unlocked character
+      Object.keys(CHARACTER_PROGRESSION)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .forEach(lvl => {
+          if (currentLevel >= lvl) {
+            newChar = CHARACTER_PROGRESSION[lvl];
+          }
+        });
+      
+      newState.character = newChar;
 
-      // Update best score if needed
+      // Update best score
       if (newState.score > newState.bestScore) {
         newState.bestScore = newState.score;
       }
@@ -63,11 +75,16 @@ export function usePersistentGameState() {
     setState(prev => ({ ...prev, score: prev.score + amount }));
   }, []);
 
+  const resetProgress = useCallback(() => {
+    setState({ ...INITIAL_STATE, bestScore: state.bestScore });
+  }, [state.bestScore]);
+
   return {
     state,
     updateState,
     earnCoins,
     addScore,
+    resetProgress,
     isLoaded
   };
 }

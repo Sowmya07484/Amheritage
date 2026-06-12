@@ -32,7 +32,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground cursor-none;
     touch-action: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -41,12 +41,6 @@
 
 .perspective-game {
   perspective: 1000px;
-}
-
-.game-lane-grid {
-  background-image: linear-gradient(to bottom, rgba(37, 99, 235, 0.1) 1px, transparent 1px),
-    linear-gradient(to right, rgba(37, 99, 235, 0.1) 1px, transparent 1px);
-  background-size: 100% 100px, 33.33% 100%;
 }
 
 .text-glow {
@@ -61,46 +55,37 @@ canvas {
   image-rendering: pixelated;
 }
 
-/* Character Animations */
-@keyframes run-left-leg {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-5px) rotate(-15deg); }
-}
-
-@keyframes run-right-leg {
-  0%, 100% { transform: translateY(-5px) rotate(-15deg); }
-  50% { transform: translateY(0) rotate(0deg); }
-}
-
-@keyframes run-body-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-}
-
-@keyframes run-cape-flap {
-  0%, 100% { transform: scaleY(1) skewX(0deg); }
-  25% { transform: scaleY(1.05) skewX(2deg); }
-  75% { transform: scaleY(0.95) skewX(-2deg); }
-}
-
-.animate-run-left-leg {
-  animation: run-left-leg 0.4s infinite ease-in-out;
-}
-
-.animate-run-right-leg {
-  animation: run-right-leg 0.4s infinite ease-in-out;
-}
-
-.animate-run-body-bob {
-  animation: run-body-bob 0.4s infinite ease-in-out;
-}
-
-.animate-run-cape-flap {
-  animation: run-cape-flap 0.2s infinite ease-in-out;
-}
-
-.shadow-oval {
-  filter: blur(8px);
-  background: rgba(0,0,0,0.4);
+/* Bubble Cursor Styles */
+.bubble-cursor {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  background: rgba(37, 99, 235, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.05s ease-out;
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.5);
+}
+
+.bubble-cursor-inner {
+  position: absolute;
+  top: 20%;
+  left: 20%;
+  width: 30%;
+  height: 30%;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+
+/* Animations */
+@keyframes pulse-light {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+.animate-pulse-light {
+  animation: pulse-light 2s infinite ease-in-out;
 }
