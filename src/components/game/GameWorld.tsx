@@ -68,14 +68,11 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         return;
       }
 
-      // Update logic
       const moveStep = (speed * (dt / 16)) * 1.5;
       distanceRef.current += moveStep;
       
-      // Update obstacles
       obstaclesRef.current.forEach(obs => {
         obs.z -= moveStep;
-        // Adjusted collision detection for more precision
         if (!obs.passed && obs.z < 250 && obs.z > 100 && obs.lane === lane) {
           obs.passed = true;
           onCollision();
@@ -83,52 +80,43 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         if (obs.z < 0) obs.passed = true;
       });
 
-      // Update collectibles
       collectiblesRef.current.forEach(col => {
         col.z -= moveStep;
-        // Magnetic-like collection feel
         if (!col.collected && col.z < 350 && col.z > 50 && Math.abs(col.lane - lane) < 0.7) {
           col.collected = true;
           onCoinCollected();
         }
       });
 
-      // Cleanup
       obstaclesRef.current = obstaclesRef.current.filter(obs => obs.z > -100);
       collectiblesRef.current = collectiblesRef.current.filter(col => col.z > -100 && !col.collected);
 
-      // Spawning frequency
       if (Math.random() < 0.02) spawnObstacle();
       if (Math.random() < 0.04) spawnCoin();
 
-      // Checkpoint trigger
       if (distanceRef.current >= nextCheckpointRef.current) {
         nextCheckpointRef.current += 2000;
         onCheckpoint();
       }
 
-      // Draw logic
       const w = canvas.width;
       const h = canvas.height;
       ctx.clearRect(0, 0, w, h);
 
       const horizon = h * 0.45;
       
-      // Sky
       const skyGrad = ctx.createLinearGradient(0, 0, 0, horizon);
       skyGrad.addColorStop(0, '#020617');
       skyGrad.addColorStop(1, '#0F172A');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, w, horizon);
 
-      // Road
       const roadGrad = ctx.createLinearGradient(0, horizon, 0, h);
       roadGrad.addColorStop(0, '#1E1B4B');
       roadGrad.addColorStop(1, '#020617');
       ctx.fillStyle = roadGrad;
       ctx.fillRect(0, horizon, w, h - horizon);
 
-      // 3 Main Lanes Visual Markers
       ctx.strokeStyle = '#2563EB44';
       ctx.lineWidth = 4;
       for (let i = 0; i <= 3; i++) {
@@ -140,7 +128,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         ctx.stroke();
       }
 
-      // Draw Collectibles
       collectiblesRef.current.forEach(col => {
         const factor = 1 - (col.z / 3000);
         if (factor < 0) return;
@@ -157,7 +144,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         ctx.shadowBlur = 0;
       });
 
-      // Draw Obstacles
       obstaclesRef.current.forEach(obs => {
         const factor = 1 - (obs.z / 3000);
         if (factor < 0) return;
@@ -202,9 +188,9 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         className="w-full h-full object-cover"
       />
       
-      {/* Character Hero - Visual shift perfectly synced to lane changes */}
+      {/* Character Hero - Visual shift synced to buttons with percentage-based lane positioning */}
       <div 
-        className="absolute bottom-24 left-0 w-full transition-all duration-300 ease-out flex justify-center items-end pointer-events-none z-20"
+        className="absolute bottom-24 inset-x-0 h-40 transition-all duration-300 ease-out flex justify-center items-end pointer-events-none z-20"
         style={{
           transform: `translateX(${(lane - 1) * 33.33}%)`
         }}
@@ -212,7 +198,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         <Character isMoving={!isPaused} />
       </div>
 
-      {/* Speed Lines for sense of motion */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(15)].map((_, i) => (
           <div 

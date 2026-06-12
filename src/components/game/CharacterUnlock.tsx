@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Sparkles, UserCheck, Flag } from 'lucide-react';
 import { CharacterType } from '@/lib/game-types';
+import { Character } from './Character';
 
 interface CharacterUnlockProps {
   character: CharacterType;
@@ -44,16 +45,7 @@ export function CharacterUnlock({ character, onContinue }: CharacterUnlockProps)
             <div className="absolute inset-0 bg-accent/20 rounded-full blur-[60px] animate-bounce delay-700" />
             
             <div className="relative z-10 w-48 h-48 bg-white/5 rounded-[2rem] border-2 border-white/10 flex items-center justify-center overflow-hidden shadow-2xl group hover:scale-105 transition-transform duration-500">
-               <div 
-                  className="w-40 h-40"
-                  style={{
-                    backgroundImage: 'url(/trump-sprite.png)',
-                    backgroundColor: '#1e3a8a',
-                    backgroundSize: '400% 100%',
-                    backgroundPosition: '0% 0%',
-                    imageRendering: 'pixelated',
-                  }}
-                />
+               <Character isMoving={false} />
             </div>
           </div>
 
