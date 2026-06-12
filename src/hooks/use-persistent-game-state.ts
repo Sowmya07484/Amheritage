@@ -25,12 +25,12 @@ export function usePersistentGameState() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Migration: ensure character types match current set
-        if (parsed.character === 'Benjamin Franklin') parsed.character = 'Ariana Grande';
+        // Migration: ensure Ariana Grande is replaced with Benjamin Franklin
+        if (parsed.character === 'Ariana Grande') parsed.character = 'Benjamin Franklin';
         
         if (parsed.unlockedCharacters) {
           parsed.unlockedCharacters = parsed.unlockedCharacters.map((c: string) => {
-            if (c === 'Benjamin Franklin') return 'Ariana Grande';
+            if (c === 'Ariana Grande') return 'Benjamin Franklin';
             return c;
           });
         }

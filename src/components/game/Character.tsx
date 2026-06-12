@@ -30,20 +30,23 @@ export function Character({ isJumping, isMoving, isHit, lane, type = 'Donald Tru
             <circle cx="77" cy="28" r="6" fill="#fee2e2" />
           </svg>
         );
-      case 'Ariana Grande':
+      case 'Benjamin Franklin':
         return (
           <svg viewBox="0 0 100 140" className="w-full h-full drop-shadow-[0_20px_20px_rgba(0,0,0,0.8)]">
-            {/* Pop Star Outfit (Lavender/Silver) */}
-            <path d="M20,135 L80,135 L75,55 Q75,45 65,40 L35,40 Q25,45 25,55 Z" fill="#c084fc" stroke="#a855f7" strokeWidth="1" />
-            <circle cx="50" cy="80" r="10" fill="#e9d5ff" /> {/* Sparkle detail */}
+            {/* Colonial Suit (Grey/Brown) */}
+            <path d="M15,135 L85,135 L80,60 Q80,50 70,45 L30,45 Q20,50 20,60 Z" fill="#4b5563" stroke="#1f2937" strokeWidth="1" />
+            <path d="M40,45 L60,45 L62,60 L38,60 Z" fill="#ffffff" />
             
-            {/* Signature High Ponytail */}
-            <path d="M50,15 L75,40 L85,90 L70,85 L55,30 Z" fill="#451a03" /> {/* The Tail */}
-            <circle cx="50" cy="25" r="22" fill="#451a03" stroke="#27272a" strokeWidth="1" /> {/* Head shape */}
+            {/* Head with Balding Hair */}
+            <circle cx="50" cy="30" r="22" fill="#fee2e2" />
+            <path d="M28,30 Q28,10 50,10 Q72,10 72,30 L72,35 Q72,45 50,45 Q28,45 28,35 Z" fill="#fee2e2" />
+            <path d="M28,25 Q28,45 40,50 L40,30 Z" fill="#e5e7eb" />
+            <path d="M72,25 Q72,45 60,50 L60,30 Z" fill="#e5e7eb" />
             
-            {/* Face/Ears */}
-            <circle cx="28" cy="35" r="6" fill="#fdf4ff" />
-            <circle cx="72" cy="35" r="6" fill="#fdf4ff" />
+            {/* Specs */}
+            <circle cx="42" cy="35" r="5" fill="none" stroke="#374151" strokeWidth="1.5" />
+            <circle cx="58" cy="35" r="5" fill="none" stroke="#374151" strokeWidth="1.5" />
+            <line x1="47" y1="35" x2="53" y2="35" stroke="#374151" strokeWidth="1.5" />
           </svg>
         );
       case 'Donald Trump':
