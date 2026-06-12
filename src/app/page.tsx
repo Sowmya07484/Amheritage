@@ -11,7 +11,7 @@ import { CharacterUnlock } from '@/components/game/CharacterUnlock';
 import { usePersistentGameState } from '@/hooks/use-persistent-game-state';
 import { Lane } from '@/lib/game-types';
 import { Button } from '@/components/ui/button';
-import { Play, Flag, Star } from 'lucide-react';
+import { Play, Flag, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function HeritageSprint() {
   const { state, updateState, addScore, earnCoins, isLoaded } = usePersistentGameState();
@@ -228,11 +228,30 @@ export default function HeritageSprint() {
       <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none opacity-80" />
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-background to-transparent pointer-events-none opacity-60" />
       
-      {/* Invisible Touch Zones for Tap movement as alternative */}
-      {isPlaying && !isQuizActive && !isLevelComplete && !isGameOver && (
-        <div className="absolute inset-0 flex pointer-events-none">
-          <div className="w-1/2 h-full pointer-events-auto" onClick={moveLeft} />
-          <div className="w-1/2 h-full pointer-events-auto" onClick={moveRight} />
+      {/* Visible Navigation Buttons */}
+      {isPlaying && !isQuizActive && !isLevelComplete && !isGameOver && !isUnlockActive && (
+        <div className="absolute inset-x-0 bottom-12 z-40 px-6 flex justify-between pointer-events-none">
+          <Button 
+            variant="ghost" 
+            className="w-20 h-20 rounded-full bg-primary/20 backdrop-blur-lg border-2 border-primary/40 text-white pointer-events-auto active:scale-90 active:bg-primary/40 transition-all flex items-center justify-center shadow-xl shadow-primary/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              moveLeft();
+            }}
+          >
+            <ChevronLeft className="w-12 h-12 stroke-[3px]" />
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            className="w-20 h-20 rounded-full bg-accent/20 backdrop-blur-lg border-2 border-accent/40 text-white pointer-events-auto active:scale-90 active:bg-accent/40 transition-all flex items-center justify-center shadow-xl shadow-accent/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              moveRight();
+            }}
+          >
+            <ChevronRight className="w-12 h-12 stroke-[3px]" />
+          </Button>
         </div>
       )}
     </main>
