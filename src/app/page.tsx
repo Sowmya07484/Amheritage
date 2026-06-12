@@ -26,21 +26,31 @@ export default function HeritageSprint() {
   // Swipe Detection Refs
   const touchStartPos = useRef<{ x: number, y: number } | null>(null);
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
-    
-    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-      setLane(prev => Math.max(0, prev - 1) as Lane);
-    }
-    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-      setLane(prev => Math.min(2, prev + 1) as Lane);
-    }
-  }, [isPlaying, isQuizActive, isGameOver, isLevelComplete, isUnlockActive]);
+  // Handle Movement
+  const moveLeft = useCallback(() => {
+    setLane(prev => Math.max(0, prev - 1) as Lane);
+  }, []);
 
+  const moveRight = useCallback(() => {
+    setLane(prev => Math.min(2, prev + 1) as Lane);
+  }, []);
+
+  // Global Key Down Listener
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
+      
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        moveLeft();
+      }
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        moveRight();
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isPlaying, isQuizActive, isGameOver, isLevelComplete, isUnlockActive, moveLeft, moveRight]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartPos.current = {
@@ -57,11 +67,11 @@ export default function HeritageSprint() {
     const diffY = e.changedTouches[0].clientY - touchStartPos.current.y;
     
     // Sensitivity check for horizontal swipe vs vertical scroll
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 20) {
       if (diffX > 0) {
-        setLane(prev => Math.min(2, prev + 1) as Lane);
+        moveRight();
       } else {
-        setLane(prev => Math.max(0, prev - 1) as Lane);
+        moveLeft();
       }
     }
     
@@ -69,7 +79,6 @@ export default function HeritageSprint() {
   };
 
   const onCollision = useCallback(() => {
-    // Obstacle penalty: small score reduction or brief stumble
     addScore(-5);
   }, [addScore]);
 
@@ -215,8 +224,17 @@ export default function HeritageSprint() {
         />
       )}
 
+      {/* Decorative Overlays */}
       <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none opacity-80" />
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-background to-transparent pointer-events-none opacity-60" />
+      
+      {/* Invisible Touch Zones for Tap movement as alternative */}
+      {isPlaying && !isQuizActive && !isLevelComplete && !isGameOver && (
+        <div className="absolute inset-0 flex pointer-events-none">
+          <div className="w-1/2 h-full pointer-events-auto" onClick={moveLeft} />
+          <div className="w-1/2 h-full pointer-events-auto" onClick={moveRight} />
+        </div>
+      )}
     </main>
   );
 }

@@ -214,9 +214,9 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       
       {/* Character Container - handles horizontal transition */}
       <div 
-        className="absolute bottom-20 left-1/2 -translate-x-1/2 transition-all duration-300 ease-out flex justify-center items-end pointer-events-none"
+        className="absolute bottom-20 left-1/2 transition-transform duration-300 ease-out flex justify-center items-end pointer-events-none z-20"
         style={{
-          marginLeft: `${(lane - 1) * 32}vw`
+          transform: `translateX(calc(-50% + ${(lane - 1) * 32}vw))`
         }}
       >
         <Character isMoving={!isPaused} />
