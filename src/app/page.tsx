@@ -10,6 +10,7 @@ import { LevelComplete } from '@/components/game/LevelComplete';
 import { CharacterUnlock } from '@/components/game/CharacterUnlock';
 import { LevelMap } from '@/components/game/LevelMap';
 import { PauseOverlay } from '@/components/game/PauseOverlay';
+import { Character } from '@/components/game/Character';
 import { usePersistentGameState } from '@/hooks/use-persistent-game-state';
 import { Lane, QUESTIONS_PER_LEVEL, MAX_LEVELS, CHARACTER_PROGRESSION } from '@/lib/game-types';
 import { Button } from '@/components/ui/button';
@@ -228,14 +229,24 @@ export default function HeritageSprint() {
         onTogglePause={() => setIsPaused(!isPaused)}
       />
 
-      <GameWorld 
-        lane={lane} 
-        speed={speed} 
-        isPaused={isQuizActive || isLevelComplete || isUnlockActive || !isPlaying || isGameOver || isPaused}
-        onCollision={onCollision}
-        onCheckpoint={onCheckpoint}
-        onCoinCollected={onCoinCollected}
-      />
+      <div className="relative w-full h-full">
+        <GameWorld 
+          lane={lane} 
+          speed={speed} 
+          isPaused={isQuizActive || isLevelComplete || isUnlockActive || !isPlaying || isGameOver || isPaused}
+          onCollision={onCollision}
+          onCheckpoint={onCheckpoint}
+          onCoinCollected={onCoinCollected}
+        />
+        
+        {/* Character is now explicitly rendered on top of the world for perfect visibility */}
+        {isPlaying && !isGameOver && !isLevelComplete && !isUnlockActive && !showMap && (
+          <Character 
+            lane={lane} 
+            isMoving={!isPaused && !isQuizActive} 
+          />
+        )}
+      </div>
 
       {isPaused && (
         <PauseOverlay 

@@ -22,7 +22,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
   const distanceRef = useRef(0);
   const nextCheckpointRef = useRef(CHECKPOINT_INTERVAL); 
   const lastFrameTimeRef = useRef(0);
-  const currentLaneXRef = useRef(1); // Visual lane position for interpolation
+  const currentLaneXRef = useRef(1); 
 
   const spawnObstacle = useCallback(() => {
     const types: Obstacle['type'][] = ['monument', 'flag', 'building', 'roadblock'];
@@ -73,7 +73,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       const moveStep = (speed * (dt / 16)) * 1.5;
       distanceRef.current += moveStep;
       
-      // Interpolate lane position for smooth movement
       const targetLaneX = lane;
       currentLaneXRef.current += (targetLaneX - currentLaneXRef.current) * 0.2;
 
@@ -182,39 +181,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         }
         ctx.restore();
       });
-
-      // Draw Character (SVG simplified to canvas commands)
-      const charFactor = 0.95;
-      const charY = horizon + (h - horizon) * Math.pow(charFactor, 2.5);
-      const charScale = 3.5;
-      const charX = (w / 2) + (currentLaneXRef.current - 1) * (w * 0.6) * charFactor;
-
-      ctx.save();
-      ctx.translate(charX, charY);
-      
-      // Shadow
-      ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 30, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Simple Suit Jacket
-      ctx.fillStyle = '#1e3a8a';
-      ctx.beginPath();
-      ctx.moveTo(-25 * charScale, -5 * charScale);
-      ctx.lineTo(25 * charScale, -5 * charScale);
-      ctx.lineTo(20 * charScale, -35 * charScale);
-      ctx.lineTo(-20 * charScale, -35 * charScale);
-      ctx.closePath();
-      ctx.fill();
-
-      // Hair (Blonde)
-      ctx.fillStyle = '#fde047';
-      ctx.beginPath();
-      ctx.arc(0, -40 * charScale, 12 * charScale, Math.PI, 0);
-      ctx.fill();
-      
-      ctx.restore();
 
       frameId = requestAnimationFrame(render);
     };
