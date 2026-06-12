@@ -31,7 +31,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       id,
       type,
       lane: obstacleLane,
-      z: 1500,
+      z: 2000,
       passed: false
     });
   }, []);
@@ -44,7 +44,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       id,
       type: 'coin',
       lane: coinLane,
-      z: 1500,
+      z: 2000,
       collected: false
     });
   }, []);
@@ -133,8 +133,8 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       // Moving road stripes
       const lineSpacing = 150;
       const offset = (distanceRef.current % lineSpacing);
-      for (let z = offset; z < 2000; z += lineSpacing) {
-        const factor = 1 - (z / 2000);
+      for (let z = offset; z < 2500; z += lineSpacing) {
+        const factor = 1 - (z / 2500);
         const y = horizon + (h - horizon) * (1 - Math.pow(factor, 2));
         const currentWidth = (w * 0.1) + (w * 1.5) * (1 - factor);
         ctx.beginPath();
@@ -145,7 +145,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
 
       // Draw Collectibles (Coins)
       collectiblesRef.current.forEach(col => {
-        const factor = 1 - (col.z / 1500);
+        const factor = 1 - (col.z / 2000);
         if (factor < 0) return;
         const colY = horizon + (h - horizon) * Math.pow(factor, 2.5);
         const colScale = Math.pow(factor, 2) * 2;
@@ -162,7 +162,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
 
       // Draw Obstacles
       obstaclesRef.current.forEach(obs => {
-        const factor = 1 - (obs.z / 1500);
+        const factor = 1 - (obs.z / 2000);
         if (factor < 0) return;
         const obsY = horizon + (h - horizon) * Math.pow(factor, 2.5);
         const obsScale = Math.pow(factor, 2) * 2.5;
@@ -196,28 +196,28 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         className="w-full h-full object-cover"
       />
       
-      {/* Character Overlay (React component for better animation/styling) */}
+      {/* Character Overlay */}
       <div 
-        className="absolute bottom-16 left-1/2 -translate-x-1/2 transition-all duration-300"
+        className="absolute bottom-16 left-1/2 -translate-x-1/2 transition-all duration-300 flex justify-center items-end"
         style={{
-          transform: `translateX(calc(-50% + ${(lane - 1) * 33}%)) scale(1.2)`
+          transform: `translateX(calc(-50% + ${(lane - 1) * 33}%))`
         }}
       >
         <Character type="The Patriot" isMoving={!isPaused} />
       </div>
 
       {/* Speed lines effect */}
-      <div className="absolute inset-0 pointer-events-none opacity-30">
+      <div className="absolute inset-0 pointer-events-none opacity-20">
         {[...Array(15)].map((_, i) => (
           <div 
             key={i}
             className="absolute bg-white animate-pulse"
             style={{
-              width: '2px',
-              height: Math.random() * 150 + 'px',
+              width: '1px',
+              height: Math.random() * 200 + 'px',
               left: Math.random() * 100 + '%',
-              top: '-200px',
-              animation: `fall ${Math.random() * 0.5 + 0.2}s linear infinite`,
+              top: '-300px',
+              animation: `fall ${Math.random() * 0.4 + 0.1}s linear infinite`,
               opacity: Math.random()
             }}
           />
@@ -227,7 +227,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       <style jsx>{`
         @keyframes fall {
           0% { transform: translateY(0); }
-          100% { transform: translateY(1400px); }
+          100% { transform: translateY(1500px); }
         }
       `}</style>
     </div>

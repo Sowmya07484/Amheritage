@@ -60,3 +60,47 @@
 canvas {
   image-rendering: pixelated;
 }
+
+/* Character Animations */
+@keyframes run-left-leg {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(-15deg); }
+}
+
+@keyframes run-right-leg {
+  0%, 100% { transform: translateY(-5px) rotate(-15deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+}
+
+@keyframes run-body-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes run-cape-flap {
+  0%, 100% { transform: scaleY(1) skewX(0deg); }
+  25% { transform: scaleY(1.05) skewX(2deg); }
+  75% { transform: scaleY(0.95) skewX(-2deg); }
+}
+
+.animate-run-left-leg {
+  animation: run-left-leg 0.4s infinite ease-in-out;
+}
+
+.animate-run-right-leg {
+  animation: run-right-leg 0.4s infinite ease-in-out;
+}
+
+.animate-run-body-bob {
+  animation: run-body-bob 0.4s infinite ease-in-out;
+}
+
+.animate-run-cape-flap {
+  animation: run-cape-flap 0.2s infinite ease-in-out;
+}
+
+.shadow-oval {
+  filter: blur(8px);
+  background: rgba(0,0,0,0.4);
+  border-radius: 50%;
+}
