@@ -28,11 +28,11 @@ export default function HeritageSprint() {
 
   // Handle Movement
   const moveLeft = useCallback(() => {
-    setLane(prev => Math.max(0, prev - 1) as Lane);
+    setLane(prev => (prev > 0 ? prev - 1 : 0) as Lane);
   }, []);
 
   const moveRight = useCallback(() => {
-    setLane(prev => Math.min(2, prev + 1) as Lane);
+    setLane(prev => (prev < 2 ? prev + 1 : 2) as Lane);
   }, []);
 
   // Global Key Down Listener
@@ -63,11 +63,12 @@ export default function HeritageSprint() {
     if (!touchStartPos.current || !isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
 
     const touchEndPosX = e.changedTouches[0].clientX;
+    const touchEndPosY = e.changedTouches[0].clientY;
     const diffX = touchEndPosX - touchStartPos.current.x;
-    const diffY = e.changedTouches[0].clientY - touchStartPos.current.y;
+    const diffY = touchEndPosY - touchStartPos.current.y;
     
     // Sensitivity check for horizontal swipe vs vertical scroll
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 20) {
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
       if (diffX > 0) {
         moveRight();
       } else {
@@ -142,12 +143,12 @@ export default function HeritageSprint() {
 
   return (
     <main 
-      className="relative w-full h-svh bg-background overflow-hidden font-headline select-none touch-none"
+      className="relative w-full h-svh bg-background overflow-hidden select-none touch-none"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
       {!isPlaying && !isGameOver && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-xl p-8">
+        <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/60 backdrop-blur-xl p-8">
           <div className="mb-12 flex flex-col items-center text-center">
             <div className="w-24 h-24 bg-primary rounded-full flex items-center justify-center mb-6 ring-8 ring-primary/20 animate-bounce">
               <Flag className="w-12 h-12 text-white fill-white" />
@@ -224,36 +225,36 @@ export default function HeritageSprint() {
         />
       )}
 
-      {/* Decorative Overlays */}
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none opacity-80" />
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-background to-transparent pointer-events-none opacity-60" />
-      
-      {/* Visible Navigation Buttons */}
+      {/* Control Buttons Overlay */}
       {isPlaying && !isQuizActive && !isLevelComplete && !isGameOver && !isUnlockActive && (
-        <div className="absolute inset-x-0 bottom-12 z-40 px-6 flex justify-between pointer-events-none">
+        <div className="absolute inset-x-0 bottom-12 z-50 px-6 flex justify-between pointer-events-none">
           <Button 
-            variant="ghost" 
-            className="w-20 h-20 rounded-full bg-primary/20 backdrop-blur-lg border-2 border-primary/40 text-white pointer-events-auto active:scale-90 active:bg-primary/40 transition-all flex items-center justify-center shadow-xl shadow-primary/10"
+            className="w-24 h-24 rounded-full bg-primary/30 backdrop-blur-xl border-4 border-primary/50 text-white pointer-events-auto active:scale-90 active:bg-primary/60 transition-all flex items-center justify-center shadow-[0_0_30px_rgba(37,99,235,0.4)]"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               moveLeft();
             }}
           >
-            <ChevronLeft className="w-12 h-12 stroke-[3px]" />
+            <ChevronLeft className="w-14 h-14 stroke-[4px]" />
           </Button>
           
           <Button 
-            variant="ghost" 
-            className="w-20 h-20 rounded-full bg-accent/20 backdrop-blur-lg border-2 border-accent/40 text-white pointer-events-auto active:scale-90 active:bg-accent/40 transition-all flex items-center justify-center shadow-xl shadow-accent/10"
+            className="w-24 h-24 rounded-full bg-accent/30 backdrop-blur-xl border-4 border-accent/50 text-white pointer-events-auto active:scale-90 active:bg-accent/60 transition-all flex items-center justify-center shadow-[0_0_30px_rgba(239,68,68,0.4)]"
             onClick={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               moveRight();
             }}
           >
-            <ChevronRight className="w-12 h-12 stroke-[3px]" />
+            <ChevronRight className="w-14 h-14 stroke-[4px]" />
           </Button>
         </div>
       )}
+
+      {/* Decorative Overlays */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none opacity-80" />
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-background to-transparent pointer-events-none opacity-60" />
     </main>
   );
 }

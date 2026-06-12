@@ -75,8 +75,8 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       // Update obstacles
       obstaclesRef.current.forEach(obs => {
         obs.z -= moveStep;
-        // Collision check - sensitive range for lane (hitbox)
-        if (!obs.passed && obs.z < 100 && obs.z > 20 && obs.lane === lane) {
+        // Collision check - adjusted sensitive range for better feel
+        if (!obs.passed && obs.z < 150 && obs.z > 50 && obs.lane === lane) {
           obs.passed = true;
           onCollision();
         }
@@ -86,8 +86,8 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       // Update collectibles
       collectiblesRef.current.forEach(col => {
         col.z -= moveStep;
-        // Collection check (hitbox)
-        if (!col.collected && col.z < 100 && col.z > 20 && col.lane === lane) {
+        // Collection check - wider hitbox for easier collection
+        if (!col.collected && col.z < 180 && col.z > 20 && Math.abs(col.lane - lane) < 0.5) {
           col.collected = true;
           onCoinCollected();
         }
@@ -97,7 +97,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       obstaclesRef.current = obstaclesRef.current.filter(obs => obs.z > -100);
       collectiblesRef.current = collectiblesRef.current.filter(col => col.z > -100 && !col.collected);
 
-      // Spawning frequency adjusted for game feel
+      // Spawning frequency
       if (Math.random() < 0.02) spawnObstacle();
       if (Math.random() < 0.04) spawnCoin();
 
@@ -163,7 +163,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         ctx.arc(laneX, colY - 20 * colScale, 15 * colScale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Coin inner detail
         ctx.strokeStyle = '#92400E';
         ctx.lineWidth = 2 * colScale;
         ctx.beginPath();
@@ -183,8 +182,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         if (obs.type === 'roadblock') {
           ctx.fillStyle = '#EF4444';
           ctx.fillRect(laneX - 30 * obsScale, obsY - 40 * obsScale, 60 * obsScale, 40 * obsScale);
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(laneX - 30 * obsScale, obsY - 25 * obsScale, 60 * obsScale, 10 * obsScale);
         } else if (obs.type === 'flag') {
           ctx.fillStyle = '#1E3A8A';
           ctx.fillRect(laneX - 5 * obsScale, obsY - 100 * obsScale, 5 * obsScale, 100 * obsScale);
@@ -212,11 +209,11 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         className="w-full h-full object-cover"
       />
       
-      {/* Character Container - handles horizontal transition */}
+      {/* Character Container - explicitly linked to lane with direct style mapping */}
       <div 
-        className="absolute bottom-20 left-1/2 transition-transform duration-300 ease-out flex justify-center items-end pointer-events-none z-20"
+        className="absolute bottom-20 left-0 w-full transition-transform duration-300 ease-out flex justify-center items-end pointer-events-none z-20"
         style={{
-          transform: `translateX(calc(-50% + ${(lane - 1) * 32}vw))`
+          transform: `translateX(${(lane - 1) * 33.33}%)`
         }}
       >
         <Character isMoving={!isPaused} />
@@ -227,7 +224,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         {[...Array(15)].map((_, i) => (
           <div 
             key={i}
-            className="absolute bg-white animate-pulse"
+            className="absolute bg-white"
             style={{
               width: '1px',
               height: Math.random() * 200 + 'px',
