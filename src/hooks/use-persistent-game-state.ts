@@ -25,15 +25,12 @@ export function usePersistentGameState() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Migration: If user had "The Patriot", convert to "Donald Trump"
-        if (parsed.character === 'The Patriot') parsed.character = 'Donald Trump';
-        // Migration: If user had "Ariana Grande", convert to "Benjamin Franklin"
-        if (parsed.character === 'Ariana Grande') parsed.character = 'Benjamin Franklin';
+        // Migration: ensure character types match current set
+        if (parsed.character === 'Benjamin Franklin') parsed.character = 'Ariana Grande';
         
         if (parsed.unlockedCharacters) {
           parsed.unlockedCharacters = parsed.unlockedCharacters.map((c: string) => {
-            if (c === 'The Patriot') return 'Donald Trump';
-            if (c === 'Ariana Grande') return 'Benjamin Franklin';
+            if (c === 'Benjamin Franklin') return 'Ariana Grande';
             return c;
           });
         }

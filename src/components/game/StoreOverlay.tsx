@@ -4,7 +4,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { CharacterType, CHARACTER_PRICE } from '@/lib/game-types';
-import { Coins, UserCheck, Lock, ShoppingBag, X } from 'lucide-react';
+import { Coins, UserCheck, Lock, ShoppingBag, X, Sparkles } from 'lucide-react';
 
 interface StoreOverlayProps {
   coins: number;
@@ -15,7 +15,7 @@ interface StoreOverlayProps {
   onSelect: (char: CharacterType) => void;
 }
 
-const CHARACTERS: CharacterType[] = ['Donald Trump', 'George Washington', 'Benjamin Franklin'];
+const CHARACTERS: CharacterType[] = ['Donald Trump', 'George Washington', 'Ariana Grande'];
 
 export function StoreOverlay({ coins, unlockedCharacters, selectedCharacter, onClose, onBuy, onSelect }: StoreOverlayProps) {
   return (
@@ -39,7 +39,12 @@ export function StoreOverlay({ coins, unlockedCharacters, selectedCharacter, onC
             <Coins className="w-5 h-5 text-yellow-400 fill-yellow-400" />
             <span className="text-2xl font-black text-white">{coins}</span>
           </div>
-          <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mt-2">New character every 300 coins!</p>
+          <div className="mt-4 flex items-center justify-center gap-2 bg-primary/20 py-2 px-4 rounded-full border border-primary/30">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <p className="text-[10px] font-black text-white uppercase tracking-widest">
+              Every 300 coins gets you a new character!
+            </p>
+          </div>
         </CardHeader>
 
         <CardContent className="grid grid-cols-1 gap-4 py-6">
