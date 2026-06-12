@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -130,9 +131,14 @@ export function QuizOverlay({ level, questionNumber, onAnswer }: QuizOverlayProp
                 </span>
              </div>
              <div className="flex items-center gap-3">
-                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">
-                  Question {questionNumber}/{QUESTIONS_PER_LEVEL}
-                </span>
+                <div className="flex flex-col items-end">
+                   <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+                     CHALLENGE
+                   </span>
+                   <span className="text-xl font-black text-primary italic leading-none">
+                     {questionNumber} <span className="text-white/20">/</span> {QUESTIONS_PER_LEVEL}
+                   </span>
+                </div>
                 <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 uppercase tracking-widest text-[8px]">
                   {question.category}
                 </Badge>

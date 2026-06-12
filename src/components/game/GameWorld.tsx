@@ -3,7 +3,6 @@
 
 import React, { useRef, useEffect, useCallback } from 'react';
 import { Lane, Obstacle, Collectible } from '@/lib/game-types';
-import { Character } from './Character';
 
 interface GameWorldProps {
   lane: Lane;
@@ -14,13 +13,16 @@ interface GameWorldProps {
   onCoinCollected: () => void;
 }
 
+const CHECKPOINT_INTERVAL = 5000;
+
 export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, onCoinCollected }: GameWorldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const obstaclesRef = useRef<Obstacle[]>([]);
   const collectiblesRef = useRef<Collectible[]>([]);
   const distanceRef = useRef(0);
-  const nextCheckpointRef = useRef(2000); 
+  const nextCheckpointRef = useRef(CHECKPOINT_INTERVAL); 
   const lastFrameTimeRef = useRef(0);
+  const currentLaneXRef = useRef(1); // Visual lane position for interpolation
 
   const spawnObstacle = useCallback(() => {
     const types: Obstacle['type'][] = ['monument', 'flag', 'building', 'roadblock'];
@@ -32,7 +34,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       id,
       type,
       lane: obstacleLane,
-      z: 3000,
+      z: 4000,
       passed: false
     });
   }, []);
@@ -45,7 +47,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       id,
       type: 'coin',
       lane: coinLane,
-      z: 3000,
+      z: 4000,
       collected: false
     });
   }, []);
@@ -63,7 +65,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       const dt = time - lastFrameTimeRef.current;
       lastFrameTimeRef.current = time;
 
-      // Prevent negative or extreme jumps on tab focus/unpause
       if (dt > 100 || dt < 0) { 
         frameId = requestAnimationFrame(render);
         return;
@@ -72,10 +73,13 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       const moveStep = (speed * (dt / 16)) * 1.5;
       distanceRef.current += moveStep;
       
+      // Interpolate lane position for smooth movement
+      const targetLaneX = lane;
+      currentLaneXRef.current += (targetLaneX - currentLaneXRef.current) * 0.2;
+
       obstaclesRef.current.forEach(obs => {
         obs.z -= moveStep;
-        // Adjusted collision box for better "snappy" feel
-        if (!obs.passed && obs.z < 250 && obs.z > 100 && obs.lane === lane) {
+        if (!obs.passed && obs.z < 350 && obs.z > 150 && Math.abs(obs.lane - currentLaneXRef.current) < 0.5) {
           obs.passed = true;
           onCollision();
         }
@@ -84,8 +88,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
 
       collectiblesRef.current.forEach(col => {
         col.z -= moveStep;
-        // Increased collection hitbox width for easier coin pickup on click
-        if (!col.collected && col.z < 350 && col.z > 50 && Math.abs(col.lane - lane) < 0.8) {
+        if (!col.collected && col.z < 450 && col.z > 100 && Math.abs(col.lane - currentLaneXRef.current) < 0.7) {
           col.collected = true;
           onCoinCollected();
         }
@@ -98,7 +101,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       if (Math.random() < 0.04) spawnCoin();
 
       if (distanceRef.current >= nextCheckpointRef.current) {
-        nextCheckpointRef.current += 2000;
+        nextCheckpointRef.current += CHECKPOINT_INTERVAL;
         onCheckpoint();
       }
 
@@ -108,18 +111,21 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
 
       const horizon = h * 0.45;
       
+      // Sky
       const skyGrad = ctx.createLinearGradient(0, 0, 0, horizon);
       skyGrad.addColorStop(0, '#020617');
       skyGrad.addColorStop(1, '#0F172A');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, w, horizon);
 
+      // Road
       const roadGrad = ctx.createLinearGradient(0, horizon, 0, h);
       roadGrad.addColorStop(0, '#1E1B4B');
       roadGrad.addColorStop(1, '#020617');
       ctx.fillStyle = roadGrad;
       ctx.fillRect(0, horizon, w, h - horizon);
 
+      // Lane Lines
       ctx.strokeStyle = '#2563EB44';
       ctx.lineWidth = 4;
       for (let i = 0; i <= 3; i++) {
@@ -131,12 +137,13 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         ctx.stroke();
       }
 
+      // Draw Collectibles
       collectiblesRef.current.forEach(col => {
-        const factor = 1 - (col.z / 3000);
+        const factor = 1 - (col.z / 4000);
         if (factor < 0) return;
         const colY = horizon + (h - horizon) * Math.pow(factor, 2.5);
         const colScale = Math.pow(factor, 2) * 2.5;
-        const laneX = (w / 2) + (col.lane - 1) * (w * 0.5) * factor;
+        const laneX = (w / 2) + (col.lane - 1) * (w * 0.6) * factor;
 
         ctx.fillStyle = '#FBBF24';
         ctx.shadowBlur = 20 * colScale;
@@ -147,12 +154,13 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         ctx.shadowBlur = 0;
       });
 
+      // Draw Obstacles
       obstaclesRef.current.forEach(obs => {
-        const factor = 1 - (obs.z / 3000);
+        const factor = 1 - (obs.z / 4000);
         if (factor < 0) return;
         const obsY = horizon + (h - horizon) * Math.pow(factor, 2.5);
         const obsScale = Math.pow(factor, 2) * 3.5;
-        const laneX = (w / 2) + (obs.lane - 1) * (w * 0.5) * factor;
+        const laneX = (w / 2) + (obs.lane - 1) * (w * 0.6) * factor;
 
         ctx.save();
         ctx.translate(laneX, obsY);
@@ -175,6 +183,39 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         ctx.restore();
       });
 
+      // Draw Character (SVG simplified to canvas commands)
+      const charFactor = 0.95;
+      const charY = horizon + (h - horizon) * Math.pow(charFactor, 2.5);
+      const charScale = 3.5;
+      const charX = (w / 2) + (currentLaneXRef.current - 1) * (w * 0.6) * charFactor;
+
+      ctx.save();
+      ctx.translate(charX, charY);
+      
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 30, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Simple Suit Jacket
+      ctx.fillStyle = '#1e3a8a';
+      ctx.beginPath();
+      ctx.moveTo(-25 * charScale, -5 * charScale);
+      ctx.lineTo(25 * charScale, -5 * charScale);
+      ctx.lineTo(20 * charScale, -35 * charScale);
+      ctx.lineTo(-20 * charScale, -35 * charScale);
+      ctx.closePath();
+      ctx.fill();
+
+      // Hair (Blonde)
+      ctx.fillStyle = '#fde047';
+      ctx.beginPath();
+      ctx.arc(0, -40 * charScale, 12 * charScale, Math.PI, 0);
+      ctx.fill();
+      
+      ctx.restore();
+
       frameId = requestAnimationFrame(render);
     };
 
@@ -191,16 +232,6 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         className="w-full h-full object-cover"
       />
       
-      {/* Character Hero - Visual shift synced to buttons with discrete lane positioning */}
-      <div 
-        className="absolute bottom-24 inset-x-0 h-40 transition-all duration-200 ease-out flex justify-center items-end pointer-events-none z-20"
-        style={{
-          transform: `translateX(${(lane - 1) * 33.33}%)`
-        }}
-      >
-        <Character isMoving={!isPaused} />
-      </div>
-
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(15)].map((_, i) => (
           <div 
