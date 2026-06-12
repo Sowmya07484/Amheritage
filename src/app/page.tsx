@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useCallback, useEffect } from 'react';
@@ -5,25 +6,29 @@ import { HUD } from '@/components/game/HUD';
 import { GameWorld } from '@/components/game/GameWorld';
 import { QuizOverlay } from '@/components/game/QuizOverlay';
 import { GameOver } from '@/components/game/GameOver';
+import { LevelComplete } from '@/components/game/LevelComplete';
+import { CharacterUnlock } from '@/components/game/CharacterUnlock';
 import { usePersistentGameState } from '@/hooks/use-persistent-game-state';
 import { Lane } from '@/lib/game-types';
 import { Button } from '@/components/ui/button';
-import { Zap, Play, Flag } from 'lucide-react';
+import { Play, Flag, Star } from 'lucide-react';
 
 export default function HeritageSprint() {
   const { state, updateState, loseHeart, addScore, earnCoins, isLoaded, regenTimeRemaining } = usePersistentGameState();
   const [lane, setLane] = useState<Lane>(1);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isQuizActive, setIsQuizActive] = useState(false);
+  const [isLevelComplete, setIsLevelComplete] = useState(false);
+  const [isUnlockActive, setIsUnlockActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(12);
 
   // Input Handlers
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (!isPlaying || isQuizActive || isGameOver) return;
+    if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
     if (e.key === 'ArrowLeft') setLane(prev => Math.max(0, prev - 1) as Lane);
     if (e.key === 'ArrowRight') setLane(prev => Math.min(2, prev + 1) as Lane);
-  }, [isPlaying, isQuizActive, isGameOver]);
+  }, [isPlaying, isQuizActive, isGameOver, isLevelComplete, isUnlockActive]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
@@ -31,6 +36,7 @@ export default function HeritageSprint() {
   }, [handleKeyDown]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
     const touchX = e.touches[0].clientX;
     const width = window.innerWidth;
     if (touchX < width / 3) setLane(0);
@@ -62,31 +68,49 @@ export default function HeritageSprint() {
 
   const onQuizAnswer = useCallback((correct: boolean) => {
     setIsQuizActive(false);
+    
     if (correct) {
+      const nextTotal = state.questionsTotal + 1;
+      const nextCorrect = state.questionsCorrect + 1;
+      
       updateState({
-        questionsTotal: state.questionsTotal + 1,
-        questionsCorrect: state.questionsCorrect + 1,
+        questionsTotal: nextTotal,
+        questionsCorrect: nextCorrect,
         score: state.score + 100,
         coins: state.coins + 10
       });
       setSpeed(prev => Math.min(25, prev + 2));
+
+      // Check for level complete (every 5 questions)
+      if (nextTotal % 5 === 0) {
+        setIsLevelComplete(true);
+      }
     } else {
       loseHeart();
       updateState({
         questionsTotal: state.questionsTotal + 1
       });
     }
-
-    if ((state.questionsTotal + 1) % 5 === 0) {
-      updateState({ level: state.level + 1 });
-    }
   }, [state, updateState, loseHeart]);
+
+  const handleNextLevel = () => {
+    setIsLevelComplete(false);
+    const nextLevel = state.level + 1;
+    updateState({ level: nextLevel });
+    
+    // Check for character unlock every 5 levels
+    if (nextLevel % 5 === 1 && nextLevel > 1) {
+      setIsUnlockActive(true);
+    }
+  };
 
   const startNewGame = () => {
     if (state.hearts <= 0) return;
     setIsPlaying(true);
     setIsGameOver(false);
     setIsQuizActive(false);
+    setIsLevelComplete(false);
+    setIsUnlockActive(false);
     updateState({ score: 0, questionsCorrect: 0, questionsTotal: 0 });
   };
 
@@ -122,6 +146,19 @@ export default function HeritageSprint() {
             RUN NOW
           </Button>
 
+          <div className="mt-12 flex gap-4">
+             <div className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10 w-32">
+                <Star className="w-6 h-6 text-yellow-500 fill-yellow-500 mb-2" />
+                <p className="text-[10px] font-bold text-white/40 uppercase">Best Score</p>
+                <p className="text-xl font-black text-white">{state.bestScore}</p>
+             </div>
+             <div className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10 w-32">
+                <Flag className="w-6 h-6 text-primary mb-2" />
+                <p className="text-[10px] font-bold text-white/40 uppercase">Max Level</p>
+                <p className="text-xl font-black text-white">{state.level}</p>
+             </div>
+          </div>
+
           {state.hearts <= 0 && (
             <div className="mt-8 flex flex-col items-center gap-2 p-4 bg-white/5 rounded-2xl border border-white/10">
               <p className="text-accent font-bold uppercase tracking-widest text-sm animate-pulse">Out of Hearts</p>
@@ -134,13 +171,13 @@ export default function HeritageSprint() {
       <HUD 
         state={state} 
         regenTimeFormatted={formattedRegen} 
-        isPaused={isQuizActive || !isPlaying} 
+        isPaused={isQuizActive || isLevelComplete || isUnlockActive || !isPlaying} 
       />
 
       <GameWorld 
         lane={lane} 
         speed={speed} 
-        isPaused={isQuizActive || !isPlaying || isGameOver}
+        isPaused={isQuizActive || isLevelComplete || isUnlockActive || !isPlaying || isGameOver}
         onCollision={onCollision}
         onCheckpoint={onCheckpoint}
         onCoinCollected={onCoinCollected}
@@ -150,6 +187,21 @@ export default function HeritageSprint() {
         <QuizOverlay 
           level={state.level} 
           onAnswer={onQuizAnswer} 
+        />
+      )}
+
+      {isLevelComplete && (
+        <LevelComplete 
+          level={state.level} 
+          score={state.score} 
+          onNext={handleNextLevel} 
+        />
+      )}
+
+      {isUnlockActive && (
+        <CharacterUnlock 
+          character={state.character} 
+          onContinue={() => setIsUnlockActive(false)} 
         />
       )}
 
