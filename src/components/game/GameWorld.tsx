@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useRef, useEffect, useCallback } from 'react';
@@ -74,8 +75,8 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       // Update obstacles
       obstaclesRef.current.forEach(obs => {
         obs.z -= moveStep;
-        // Collision check - sensitive range for lane
-        if (!obs.passed && obs.z < 80 && obs.z > 30 && obs.lane === lane) {
+        // Collision check - sensitive range for lane (hitbox)
+        if (!obs.passed && obs.z < 100 && obs.z > 20 && obs.lane === lane) {
           obs.passed = true;
           onCollision();
         }
@@ -85,8 +86,8 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       // Update collectibles
       collectiblesRef.current.forEach(col => {
         col.z -= moveStep;
-        // Collection check
-        if (!col.collected && col.z < 80 && col.z > 30 && col.lane === lane) {
+        // Collection check (hitbox)
+        if (!col.collected && col.z < 100 && col.z > 20 && col.lane === lane) {
           col.collected = true;
           onCoinCollected();
         }
@@ -96,11 +97,11 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       obstaclesRef.current = obstaclesRef.current.filter(obs => obs.z > -100);
       collectiblesRef.current = collectiblesRef.current.filter(col => col.z > -100 && !col.collected);
 
-      // Spawning
+      // Spawning frequency adjusted for game feel
       if (Math.random() < 0.02) spawnObstacle();
-      if (Math.random() < 0.05) spawnCoin();
+      if (Math.random() < 0.04) spawnCoin();
 
-      // Checkpoint
+      // Checkpoint trigger
       if (distanceRef.current >= nextCheckpointRef.current) {
         nextCheckpointRef.current += 1500;
         onCheckpoint();
@@ -119,26 +120,28 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       ctx.fillRect(0, 0, w, h);
 
       // Perspective Grid Lines
-      ctx.strokeStyle = '#2563EB44';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#2563EB33';
+      ctx.lineWidth = 4;
       const horizon = h * 0.45;
       
+      // Draw 3 Lane Borders
       for (let i = 0; i <= 3; i++) {
-        const xAtBottom = (w / 2) + (i - 1.5) * (w * 0.5);
-        const xAtHorizon = (w / 2) + (i - 1.5) * 15;
+        const xAtBottom = (w / 2) + (i - 1.5) * (w * 0.6);
+        const xAtHorizon = (w / 2) + (i - 1.5) * 20;
         ctx.beginPath();
         ctx.moveTo(xAtHorizon, horizon);
         ctx.lineTo(xAtBottom, h);
         ctx.stroke();
       }
 
-      // Moving road stripes
-      const lineSpacing = 150;
+      // Moving road stripes for speed feel
+      ctx.strokeStyle = '#2563EB66';
+      const lineSpacing = 120;
       const offset = (distanceRef.current % lineSpacing);
       for (let z = offset; z < 2500; z += lineSpacing) {
         const factor = 1 - (z / 2500);
         const y = horizon + (h - horizon) * (1 - Math.pow(factor, 2));
-        const currentWidth = (w * 0.1) + (w * 1.5) * (1 - factor);
+        const currentWidth = (w * 0.1) + (w * 1.8) * (1 - factor);
         ctx.beginPath();
         ctx.moveTo((w / 2) - currentWidth / 2, y);
         ctx.lineTo((w / 2) + currentWidth / 2, y);
@@ -151,14 +154,21 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         if (factor < 0) return;
         const colY = horizon + (h - horizon) * Math.pow(factor, 2.5);
         const colScale = Math.pow(factor, 2) * 2;
-        const laneX = (w / 2) + (col.lane - 1) * (w * 0.3) * factor;
+        const laneX = (w / 2) + (col.lane - 1) * (w * 0.35) * factor;
 
         ctx.fillStyle = '#FBBF24';
-        ctx.shadowBlur = 15 * colScale;
+        ctx.shadowBlur = 20 * colScale;
         ctx.shadowColor = '#F59E0B';
         ctx.beginPath();
         ctx.arc(laneX, colY - 20 * colScale, 15 * colScale, 0, Math.PI * 2);
         ctx.fill();
+        
+        // Coin inner detail
+        ctx.strokeStyle = '#92400E';
+        ctx.lineWidth = 2 * colScale;
+        ctx.beginPath();
+        ctx.arc(laneX, colY - 20 * colScale, 10 * colScale, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.shadowBlur = 0;
       });
 
@@ -167,17 +177,22 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         const factor = 1 - (obs.z / 2000);
         if (factor < 0) return;
         const obsY = horizon + (h - horizon) * Math.pow(factor, 2.5);
-        const obsScale = Math.pow(factor, 2) * 2.5;
-        const laneX = (w / 2) + (obs.lane - 1) * (w * 0.3) * factor;
+        const obsScale = Math.pow(factor, 2) * 2.8;
+        const laneX = (w / 2) + (obs.lane - 1) * (w * 0.35) * factor;
 
-        ctx.fillStyle = obs.type === 'roadblock' ? '#EF4444' : '#FFFFFF';
-        if (obs.type === 'flag') {
-          ctx.fillStyle = '#1E3A8A';
-          ctx.fillRect(laneX - 25 * obsScale, obsY - 60 * obsScale, 50 * obsScale, 30 * obsScale);
+        if (obs.type === 'roadblock') {
           ctx.fillStyle = '#EF4444';
-          ctx.fillRect(laneX - 25 * obsScale, obsY - 30 * obsScale, 50 * obsScale, 10 * obsScale);
+          ctx.fillRect(laneX - 30 * obsScale, obsY - 40 * obsScale, 60 * obsScale, 40 * obsScale);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(laneX - 30 * obsScale, obsY - 25 * obsScale, 60 * obsScale, 10 * obsScale);
+        } else if (obs.type === 'flag') {
+          ctx.fillStyle = '#1E3A8A';
+          ctx.fillRect(laneX - 5 * obsScale, obsY - 100 * obsScale, 5 * obsScale, 100 * obsScale);
+          ctx.fillStyle = '#EF4444';
+          ctx.fillRect(laneX, obsY - 100 * obsScale, 50 * obsScale, 30 * obsScale);
         } else {
-          ctx.fillRect(laneX - 20 * obsScale, obsY - 40 * obsScale, 40 * obsScale, 40 * obsScale);
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(laneX - 25 * obsScale, obsY - 50 * obsScale, 50 * obsScale, 50 * obsScale);
         }
       });
 
@@ -199,9 +214,9 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       
       {/* Character Container - handles horizontal transition */}
       <div 
-        className="absolute bottom-16 left-1/2 -translate-x-1/2 transition-all duration-300 ease-out flex justify-center items-end"
+        className="absolute bottom-20 left-1/2 -translate-x-1/2 transition-all duration-300 ease-out flex justify-center items-end pointer-events-none"
         style={{
-          transform: `translateX(calc(-50% + ${(lane - 1) * 33}vw))`
+          marginLeft: `${(lane - 1) * 32}vw`
         }}
       >
         <Character isMoving={!isPaused} />

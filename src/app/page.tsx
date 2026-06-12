@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
@@ -27,8 +28,13 @@ export default function HeritageSprint() {
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive) return;
-    if (e.key === 'ArrowLeft') setLane(prev => Math.max(0, prev - 1) as Lane);
-    if (e.key === 'ArrowRight') setLane(prev => Math.min(2, prev + 1) as Lane);
+    
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+      setLane(prev => Math.max(0, prev - 1) as Lane);
+    }
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+      setLane(prev => Math.min(2, prev + 1) as Lane);
+    }
   }, [isPlaying, isQuizActive, isGameOver, isLevelComplete, isUnlockActive]);
 
   useEffect(() => {
@@ -48,9 +54,10 @@ export default function HeritageSprint() {
 
     const touchEndPosX = e.changedTouches[0].clientX;
     const diffX = touchEndPosX - touchStartPos.current.x;
+    const diffY = e.changedTouches[0].clientY - touchStartPos.current.y;
     
-    // Minimum distance for a swipe
-    if (Math.abs(diffX) > 30) {
+    // Sensitivity check for horizontal swipe vs vertical scroll
+    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
       if (diffX > 0) {
         setLane(prev => Math.min(2, prev + 1) as Lane);
       } else {
@@ -62,9 +69,9 @@ export default function HeritageSprint() {
   };
 
   const onCollision = useCallback(() => {
-    setSpeed(prev => Math.max(8, prev - 3));
-    // Brief visual feedback or slow down
-  }, []);
+    // Obstacle penalty: small score reduction or brief stumble
+    addScore(-5);
+  }, [addScore]);
 
   const onCoinCollected = useCallback(() => {
     earnCoins(1);
@@ -88,7 +95,7 @@ export default function HeritageSprint() {
         score: state.score + 100,
         coins: state.coins + 10
       });
-      setSpeed(prev => Math.min(25, prev + 2));
+      setSpeed(prev => Math.min(25, prev + 1.5));
 
       if (nextTotal % 5 === 0) {
         setIsLevelComplete(true);
@@ -97,8 +104,7 @@ export default function HeritageSprint() {
       updateState({
         questionsTotal: state.questionsTotal + 1
       });
-      // Wrong answer - slow down as penalty
-      setSpeed(prev => Math.max(8, prev - 2));
+      setSpeed(prev => Math.max(10, prev - 1));
     }
   }, [state, updateState]);
 
@@ -127,7 +133,7 @@ export default function HeritageSprint() {
 
   return (
     <main 
-      className="relative w-full h-svh bg-background overflow-hidden font-headline select-none"
+      className="relative w-full h-svh bg-background overflow-hidden font-headline select-none touch-none"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
