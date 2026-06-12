@@ -40,7 +40,7 @@ export function HUD({ state, isPaused, onTogglePause }: HUDProps) {
             {state.score.toLocaleString()}
           </div>
           <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">
-            <Zap className="w-3 h-3 text-primary fill-primary" /> Campaign Points
+            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> {state.totalStars} Stars Collected
           </div>
         </div>
 
@@ -51,7 +51,7 @@ export function HUD({ state, isPaused, onTogglePause }: HUDProps) {
             <span className="text-3xl font-black text-white italic leading-none">{state.level}</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs font-bold text-white/60 bg-black/40 px-3 py-1 rounded-full">
-            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /> {state.bestScore}
+            <Zap className="w-4 h-4 text-primary fill-primary" /> {state.bestScore}
           </div>
         </div>
       </div>

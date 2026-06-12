@@ -25,6 +25,7 @@ export default function HeritageSprint() {
   const [isPaused, setIsPaused] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [speed, setSpeed] = useState(12);
+  const [lastEarnedStars, setLastEarnedStars] = useState(0);
 
   const touchStartPos = useRef<{ x: number, y: number } | null>(null);
 
@@ -79,41 +80,53 @@ export default function HeritageSprint() {
   const onQuizAnswer = useCallback((correct: boolean) => {
     setIsQuizActive(false);
     
-    if (correct) {
-      const nextInLevel = state.questionsInLevel + 1;
-      const nextTotal = state.questionsTotal + 1;
-      const nextCorrect = state.questionsCorrect + 1;
-      
-      // Calculate new speed based on total progress
-      const baseSpeed = 12 + (state.level * 2);
-      setSpeed(Math.min(30, baseSpeed + (nextInLevel * 0.5)));
+    const nextInLevel = state.questionsInLevel + 1;
+    const nextCorrect = correct ? state.questionsCorrect + 1 : state.questionsCorrect;
+    const nextTotal = state.questionsTotal + 1;
 
-      if (nextInLevel >= QUESTIONS_PER_LEVEL) {
-        setIsLevelComplete(true);
-        updateState({
-          questionsInLevel: 0,
-          questionsTotal: nextTotal,
-          questionsCorrect: nextCorrect,
-          score: state.score + 500
-        });
-      } else {
-        updateState({
-          questionsInLevel: nextInLevel,
-          questionsTotal: nextTotal,
-          questionsCorrect: nextCorrect,
-          score: state.score + 100
-        });
-      }
+    if (nextInLevel >= QUESTIONS_PER_LEVEL) {
+      // End of Level: Calculate Stars
+      let stars = 0;
+      if (nextCorrect === 10) stars = 3;
+      else if (nextCorrect >= 8) stars = 2;
+      else if (nextCorrect >= 6) stars = 1;
+
+      setLastEarnedStars(stars);
+      setIsLevelComplete(true);
+
+      const updatedStarsByLevel = { ...state.starsByLevel, [state.level]: stars };
+      const totalStars = Object.values(updatedStarsByLevel).reduce((a, b) => a + b, 0);
+
+      updateState({
+        questionsInLevel: 0,
+        questionsCorrect: 0, // Reset for next level
+        questionsTotal: nextTotal,
+        score: state.score + (correct ? 100 : 0) + 500,
+        starsByLevel: updatedStarsByLevel,
+        totalStars: totalStars
+      });
     } else {
       updateState({
-        questionsTotal: state.questionsTotal + 1
+        questionsInLevel: nextInLevel,
+        questionsCorrect: nextCorrect,
+        questionsTotal: nextTotal,
+        score: state.score + (correct ? 100 : -50)
       });
-      // Game over if they fail enough? For now just penalty
-      addScore(-50);
     }
-  }, [state, updateState, addScore]);
+  }, [state, updateState]);
 
   const handleNextLevel = () => {
+    const earnedStars = state.starsByLevel[state.level] || 0;
+    
+    // Check if player has at least 2 stars to unlock next level
+    if (earnedStars < 2) {
+      // For now, if they fail requirement, stay on map or restart level
+      setIsLevelComplete(false);
+      setShowMap(true);
+      setIsPlaying(false);
+      return;
+    }
+
     setIsLevelComplete(false);
     const nextLevel = Math.min(MAX_LEVELS, state.level + 1);
     
@@ -125,7 +138,6 @@ export default function HeritageSprint() {
     if (isUnlockLevel) {
       setIsUnlockActive(true);
     } else {
-      // Show map between levels
       setShowMap(true);
       setIsPlaying(false);
     }
@@ -155,7 +167,7 @@ export default function HeritageSprint() {
         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/60 backdrop-blur-xl p-8">
           {showMap ? (
             <div className="flex flex-col items-center gap-8 w-full">
-               <LevelMap currentLevel={state.level} />
+               <LevelMap currentLevel={state.level} starsByLevel={state.starsByLevel} />
                <Button 
                 className="w-full max-w-xs h-20 bg-primary hover:bg-primary/90 text-white font-black italic text-3xl rounded-3xl shadow-2xl border-b-8 border-primary/60 group transition-all transform hover:scale-105 active:scale-95"
                 onClick={startNewGame}
@@ -252,6 +264,7 @@ export default function HeritageSprint() {
         <LevelComplete 
           level={state.level} 
           score={state.score} 
+          stars={lastEarnedStars}
           onNext={handleNextLevel} 
         />
       )}

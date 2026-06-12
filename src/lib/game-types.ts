@@ -19,6 +19,8 @@ export interface GameState {
   bestScore: number;
   character: CharacterType;
   unlockedBadges: string[];
+  starsByLevel: Record<number, number>;
+  totalStars: number;
 }
 
 export interface Collectible {

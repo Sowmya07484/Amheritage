@@ -7,10 +7,10 @@ import { Star, Flag, Lock, CheckCircle2 } from 'lucide-react';
 
 interface LevelMapProps {
   currentLevel: number;
-  onSelectLevel?: (level: number) => void;
+  starsByLevel: Record<number, number>;
 }
 
-export function LevelMap({ currentLevel }: LevelMapProps) {
+export function LevelMap({ currentLevel, starsByLevel }: LevelMapProps) {
   return (
     <div className="w-full max-w-2xl mx-auto p-8 bg-black/40 backdrop-blur-md rounded-3xl border border-white/10 shadow-2xl overflow-hidden relative">
       <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.5))] -z-10" />
@@ -25,9 +25,18 @@ export function LevelMap({ currentLevel }: LevelMapProps) {
         
         {Array.from({ length: MAX_LEVELS }).map((_, i) => {
           const levelNum = i + 1;
-          const isCompleted = levelNum < currentLevel;
+          const stars = starsByLevel[levelNum] || 0;
+          const isCompleted = levelNum < currentLevel || stars >= 2;
           const isCurrent = levelNum === currentLevel;
-          const isLocked = levelNum > currentLevel;
+          
+          // A level is locked if it's beyond current AND previous level didn't get 2 stars
+          let isLocked = levelNum > currentLevel;
+          if (levelNum > 1) {
+            const prevLevelStars = starsByLevel[levelNum - 1] || 0;
+            if (prevLevelStars < 2 && levelNum > currentLevel) {
+               isLocked = true;
+            }
+          }
 
           return (
             <div 
@@ -51,6 +60,13 @@ export function LevelMap({ currentLevel }: LevelMapProps) {
                   <span className="text-xl font-black text-white italic">{levelNum}</span>
                 )}
                 
+                {/* Stars below level node */}
+                <div className="absolute -bottom-5 flex gap-0.5">
+                   {[1, 2, 3].map(s => (
+                     <Star key={s} className={`w-2.5 h-2.5 ${s <= stars ? 'text-yellow-400 fill-yellow-400' : 'text-white/10'}`} />
+                   ))}
+                </div>
+
                 {isCurrent && (
                   <div className="absolute -top-1 -right-1">
                     <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 animate-bounce" />
@@ -58,7 +74,7 @@ export function LevelMap({ currentLevel }: LevelMapProps) {
                 )}
               </div>
               <span className={cn(
-                "text-[8px] font-black uppercase tracking-widest",
+                "text-[8px] font-black uppercase tracking-widest mt-2",
                 isCurrent ? "text-accent" : isLocked ? "text-white/20" : "text-white/60"
               )}>
                 {isCurrent ? "Active" : isLocked ? "Locked" : "Done"}
@@ -68,15 +84,15 @@ export function LevelMap({ currentLevel }: LevelMapProps) {
         })}
       </div>
       
-      <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-white/40">
+      <div className="mt-12 pt-6 border-t border-white/5 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-white/40">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-primary" /> Completed
+          <div className="w-2 h-2 rounded-full bg-primary" /> Advanced
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-accent" /> Target
+          <div className="w-2 h-2 rounded-full bg-accent" /> In Progress
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-white/20" /> Strategic Reserve
+          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" /> Need 2+ Stars
         </div>
       </div>
     </div>

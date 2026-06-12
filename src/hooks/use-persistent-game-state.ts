@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { GameState, CharacterType, CHARACTER_PROGRESSION, QUESTIONS_PER_LEVEL } from '@/lib/game-types';
+import { GameState, CharacterType, CHARACTER_PROGRESSION } from '@/lib/game-types';
 
 const INITIAL_STATE: GameState = {
   score: 0,
@@ -12,7 +12,9 @@ const INITIAL_STATE: GameState = {
   questionsTotal: 0,
   bestScore: 0,
   character: 'The Patriot',
-  unlockedBadges: []
+  unlockedBadges: [],
+  starsByLevel: {},
+  totalStars: 0
 };
 
 export function usePersistentGameState() {
@@ -20,7 +22,7 @@ export function usePersistentGameState() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('heritage_sprint_v2');
+    const saved = localStorage.getItem('heritage_sprint_v3');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -34,7 +36,7 @@ export function usePersistentGameState() {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem('heritage_sprint_v2', JSON.stringify(state));
+      localStorage.setItem('heritage_sprint_v3', JSON.stringify(state));
     }
   }, [state, isLoaded]);
 

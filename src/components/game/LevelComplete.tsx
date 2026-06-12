@@ -1,18 +1,20 @@
-
 "use client";
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Trophy, Star, ArrowRight, Zap } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Trophy, Star, ArrowRight, Zap, XCircle } from 'lucide-react';
 
 interface LevelCompleteProps {
   level: number;
   score: number;
+  stars: number;
   onNext: () => void;
 }
 
-export function LevelComplete({ level, score, onNext }: LevelCompleteProps) {
+export function LevelComplete({ level, score, stars, onNext }: LevelCompleteProps) {
+  const isRequirementMet = stars >= 2;
+
   return (
     <div className="absolute inset-0 z-[110] flex items-center justify-center p-6 bg-primary/20 backdrop-blur-xl animate-in fade-in zoom-in duration-500">
       <Card className="w-full max-w-sm bg-card border-primary/50 shadow-[0_0_50px_rgba(37,99,235,0.4)] overflow-hidden">
@@ -27,7 +29,20 @@ export function LevelComplete({ level, score, onNext }: LevelCompleteProps) {
             <Trophy className="w-12 h-12 text-white fill-white" />
           </div>
           <h2 className="text-4xl font-headline font-black text-white italic tracking-tighter uppercase text-glow">Level {level}</h2>
-          <p className="text-primary-foreground/60 text-xs font-bold tracking-[0.3em] uppercase mt-2">Patriot Achievement</p>
+          
+          {/* Star Display */}
+          <div className="flex gap-2 mt-4">
+            {[1, 2, 3].map((s) => (
+              <Star 
+                key={s} 
+                className={`w-8 h-8 ${s <= stars ? 'text-yellow-400 fill-yellow-400' : 'text-white/20'}`} 
+              />
+            ))}
+          </div>
+
+          <p className="text-primary-foreground/60 text-xs font-bold tracking-[0.3em] uppercase mt-4">
+            {stars === 3 ? "PERFECT SCORE!" : stars >= 2 ? "RANK ACHIEVED" : "INSUFFICIENT MERIT"}
+          </p>
         </div>
 
         <CardContent className="pt-8 pb-4">
@@ -38,28 +53,42 @@ export function LevelComplete({ level, score, onNext }: LevelCompleteProps) {
             </div>
             <div className="w-px h-12 bg-white/10" />
             <div className="text-center">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Rank</p>
-              <p className="text-3xl font-headline font-black text-primary italic">A+</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">Stars</p>
+              <p className="text-3xl font-headline font-black text-primary italic">{stars}/3</p>
             </div>
           </div>
           
-          <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
-              <Zap className="w-6 h-6 text-accent fill-accent" />
+          {!isRequirementMet && (
+            <div className="mt-8 p-4 bg-accent/10 rounded-2xl border border-accent/20 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                <XCircle className="w-6 h-6 text-accent" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white">Unlock Failed</p>
+                <p className="text-[10px] text-white/50">Need 2 stars (80% correct) to advance!</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-white">Bonus Multiplier</p>
-              <p className="text-[10px] text-white/50">Speed increased for next level!</p>
+          )}
+
+          {isRequirementMet && (
+            <div className="mt-8 p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                <Zap className="w-6 h-6 text-primary fill-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-white">Strategic Advance</p>
+                <p className="text-[10px] text-white/50">Next level unlocked successfully!</p>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
 
         <CardFooter className="pb-8">
           <Button 
-            className="w-full h-16 bg-primary hover:bg-primary/90 text-white font-headline font-black italic text-xl rounded-2xl shadow-2xl group transition-all transform hover:scale-105"
+            className={`w-full h-16 ${isRequirementMet ? 'bg-primary hover:bg-primary/90' : 'bg-white/10 text-white/40 hover:bg-white/20'} font-headline font-black italic text-xl rounded-2xl shadow-2xl group transition-all transform hover:scale-105`}
             onClick={onNext}
           >
-            CONTINUE RUN
+            {isRequirementMet ? "NEXT CAMPAIGN" : "RETRY LEVEL"}
             <ArrowRight className="w-6 h-6 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
         </CardFooter>
