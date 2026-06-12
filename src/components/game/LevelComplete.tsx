@@ -1,9 +1,11 @@
+
 "use client";
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Trophy, Star, ArrowRight, Zap, XCircle } from 'lucide-react';
+import { Trophy, Star, ArrowRight, Zap, XCircle, Flag } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface LevelCompleteProps {
   level: number;
@@ -14,6 +16,46 @@ interface LevelCompleteProps {
 
 export function LevelComplete({ level, score, stars, onNext }: LevelCompleteProps) {
   const isRequirementMet = stars >= 2;
+
+  useEffect(() => {
+    if (stars > 0) {
+      const patrioticColors = ['#2563EB', '#ffffff', '#EF4444'];
+      
+      // Basic celebration for any stars
+      confetti({
+        particleCount: 100 * stars,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: patrioticColors,
+      });
+
+      // Special Perfect Score Celebration (3 stars/10 correct)
+      if (stars === 3) {
+        const end = Date.now() + (3 * 1000);
+
+        (function frame() {
+          confetti({
+            particleCount: 5,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: patrioticColors
+          });
+          confetti({
+            particleCount: 5,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: patrioticColors
+          });
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        }());
+      }
+    }
+  }, [stars]);
 
   // Feedback based on stars
   const getFeedbackMessage = () => {
@@ -36,6 +78,15 @@ export function LevelComplete({ level, score, stars, onNext }: LevelCompleteProp
           <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center mb-4 ring-8 ring-primary/20 animate-bounce">
             <Trophy className="w-12 h-12 text-white fill-white" />
           </div>
+
+          {stars === 3 && (
+            <div className="flex gap-2 mb-2">
+              <Flag className="w-6 h-6 text-accent animate-bounce fill-accent" />
+              <Flag className="w-6 h-6 text-primary animate-bounce delay-100 fill-primary" />
+              <Flag className="w-6 h-6 text-white animate-bounce delay-200 fill-white" />
+            </div>
+          )}
+
           <h2 className="text-4xl font-headline font-black text-white italic tracking-tighter uppercase text-glow">Level {level}</h2>
           
           {/* Star Display */}

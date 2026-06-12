@@ -4,11 +4,12 @@
 import React, { useState, useEffect } from 'react';
 import { generateHeritageQuizQuestion, GenerateHeritageQuizQuestionOutput } from '@/ai/flows/generate-heritage-quiz-question';
 import { THEMATIC_ERAS, QUESTIONS_PER_LEVEL } from '@/lib/game-types';
-import { STATIC_HERITAGE_QUESTIONS, StaticQuestion } from '@/lib/static-questions';
+import { STATIC_HERITAGE_QUESTIONS } from '@/lib/static-questions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, XCircle, Info, Timer } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface QuizOverlayProps {
   level: number;
@@ -29,12 +30,11 @@ export function QuizOverlay({ level, questionNumber, onAnswer }: QuizOverlayProp
     async function fetchQuestion() {
       setLoading(true);
       
-      // Filter static questions by level if possible
       const levelAppropriateQuestions = STATIC_HERITAGE_QUESTIONS.filter(q => q.level === level);
       const questionPool = levelAppropriateQuestions.length > 0 ? levelAppropriateQuestions : STATIC_HERITAGE_QUESTIONS;
       
       const staticIndex = Math.floor(Math.random() * questionPool.length);
-      const useStatic = Math.random() > 0.2 || level <= 3; // Prefer static for early levels or high chance
+      const useStatic = Math.random() > 0.2 || level <= 3;
 
       if (useStatic && questionPool.length > 0) {
         const q = questionPool[staticIndex];
@@ -53,7 +53,6 @@ export function QuizOverlay({ level, questionNumber, onAnswer }: QuizOverlayProp
           const result = await generateHeritageQuizQuestion({ level, thematicEra: randomEra });
           setQuestion(result);
         } catch (e) {
-          // Fallback to pool if AI fails
           const fallbackQ = questionPool[0];
           setQuestion({
             question: fallbackQ.question,
@@ -91,11 +90,21 @@ export function QuizOverlay({ level, questionNumber, onAnswer }: QuizOverlayProp
   const handleSelect = (option: string) => {
     if (selectedOption) return;
     
+    const isCorrect = option === question?.correctAnswer;
     setSelectedOption(option);
     setShowExplanation(true);
+
+    if (isCorrect) {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#2563EB', '#ffffff', '#EF4444'], // Patriotic: Blue, White, Red
+      });
+    }
     
     setTimeout(() => {
-      onAnswer(option === question?.correctAnswer);
+      onAnswer(isCorrect);
     }, 2500);
   };
 
@@ -170,9 +179,9 @@ export function QuizOverlay({ level, questionNumber, onAnswer }: QuizOverlayProp
                 key={i}
                 variant={variant}
                 className={`h-auto py-4 px-6 text-left justify-start transition-all duration-300 relative overflow-hidden text-sm font-medium ${
-                  showExplanation && isCorrect ? 'bg-green-600 hover:bg-green-600 border-none' : ''
+                  showExplanation && isCorrect ? 'bg-green-600 hover:bg-green-600 border-none text-white' : ''
                 } ${
-                  showExplanation && !isCorrect && isSelected ? 'bg-red-600 hover:bg-red-600 border-none' : ''
+                  showExplanation && !isCorrect && isSelected ? 'bg-red-600 hover:bg-red-600 border-none text-white' : ''
                 } ${!selectedOption && 'hover:bg-primary/10 hover:border-primary/50'}`}
                 disabled={!!selectedOption}
                 onClick={() => handleSelect(option)}
