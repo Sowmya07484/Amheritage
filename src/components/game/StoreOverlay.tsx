@@ -15,7 +15,7 @@ interface StoreOverlayProps {
   onSelect: (char: CharacterType) => void;
 }
 
-const CHARACTERS: CharacterType[] = ['The Patriot', 'George Washington', 'Ariana Grande'];
+const CHARACTERS: CharacterType[] = ['Donald Trump', 'George Washington', 'Ariana Grande'];
 
 export function StoreOverlay({ coins, unlockedCharacters, selectedCharacter, onClose, onBuy, onSelect }: StoreOverlayProps) {
   return (

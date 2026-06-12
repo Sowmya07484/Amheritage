@@ -11,8 +11,8 @@ const INITIAL_STATE: GameState = {
   questionsInLevel: 0,
   questionsCorrect: 0,
   questionsTotal: 0,
-  character: 'The Patriot',
-  unlockedCharacters: ['The Patriot'],
+  character: 'Donald Trump',
+  unlockedCharacters: ['Donald Trump'],
   starsByLevel: {}
 };
 
@@ -25,6 +25,11 @@ export function usePersistentGameState() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        // Migration: If user had "The Patriot", convert to "Donald Trump"
+        if (parsed.character === 'The Patriot') parsed.character = 'Donald Trump';
+        if (parsed.unlockedCharacters && parsed.unlockedCharacters.includes('The Patriot')) {
+          parsed.unlockedCharacters = parsed.unlockedCharacters.map((c: string) => c === 'The Patriot' ? 'Donald Trump' : c);
+        }
         setState({ ...INITIAL_STATE, ...parsed });
       } catch (e) {
         console.error("Failed to load game state", e);

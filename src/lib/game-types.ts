@@ -1,7 +1,7 @@
 export type Lane = 0 | 1 | 2;
 
 export type CharacterType = 
-  | 'The Patriot' 
+  | 'Donald Trump' 
   | 'George Washington' 
   | 'Ariana Grande';
 

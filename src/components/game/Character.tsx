@@ -11,7 +11,7 @@ interface CharacterProps {
   type?: CharacterType;
 }
 
-export function Character({ isJumping, isMoving, isHit, lane, type = 'The Patriot' }: CharacterProps) {
+export function Character({ isJumping, isMoving, isHit, lane, type = 'Donald Trump' }: CharacterProps) {
   const lanePositions = ['20%', '50%', '80%'];
   
   const renderSprite = () => {
@@ -54,14 +54,24 @@ export function Character({ isJumping, isMoving, isHit, lane, type = 'The Patrio
             <circle cx="75" cy="32" r="5" fill="#fdba74" />
           </svg>
         );
-      default: // The Patriot
+      case 'Donald Trump':
+      default:
         return (
           <svg viewBox="0 0 100 140" className="w-full h-full drop-shadow-[0_20px_20px_rgba(0,0,0,0.8)]">
+            {/* Power Suit (Deep Blue) */}
             <path d="M15,135 L85,135 L82,55 Q82,42 70,35 L30,35 Q18,42 18,55 Z" fill="#1e3a8a" stroke="#172554" strokeWidth="1" />
             <line x1="50" y1="40" x2="50" y2="135" stroke="#172554" strokeWidth="2" strokeOpacity="0.5" />
+            
+            {/* White Shirt */}
             <path d="M38,35 L62,35 L68,48 L32,48 Z" fill="#ffffff" />
-            <path d="M46,35 L54,35 L53,50 L47,50 Z" fill="#ef4444" />
+            
+            {/* Iconic Red Tie */}
+            <path d="M46,35 L54,35 L53,60 L47,60 Z" fill="#ef4444" />
+            
+            {/* Signature Hair (Golden Yellow) */}
             <path d="M25,35 Q25,2 50,2 Q75,2 75,35 L25,35" fill="#fde047" stroke="#eab308" strokeWidth="1" />
+            
+            {/* Ears */}
             <circle cx="23" cy="28" r="6" fill="#fee2e2" />
             <circle cx="77" cy="28" r="6" fill="#fee2e2" />
           </svg>
