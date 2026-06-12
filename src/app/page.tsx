@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Play, Flag, Coins, ChevronLeft, ChevronRight, Map as MapIcon, ShoppingBag } from 'lucide-react';
 
 export default function HeritageSprint() {
-  const { state, updateState, addScore, earnCoins, buyCharacter, selectCharacter, isLoaded } = usePersistentGameState();
+  const { state, updateState, addScore, earnCoins, incrementDistance, buyCharacter, selectCharacter, isLoaded } = usePersistentGameState();
   const [lane, setLane] = useState<Lane>(1);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isQuizActive, setIsQuizActive] = useState(false);
@@ -51,6 +51,17 @@ export default function HeritageSprint() {
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [isPlaying, isQuizActive, isGameOver, isLevelComplete, isPaused, moveLeft, moveRight]);
+
+  // Handle distance tracking
+  useEffect(() => {
+    if (!isPlaying || isPaused || isQuizActive || isLevelComplete || isGameOver) return;
+
+    const interval = setInterval(() => {
+      incrementDistance(Math.floor(speed / 4));
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isPlaying, isPaused, isQuizActive, isLevelComplete, isGameOver, speed, incrementDistance]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -126,7 +137,7 @@ export default function HeritageSprint() {
 
     setIsLevelComplete(false);
     const nextLevel = Math.min(MAX_LEVELS, state.level + 1);
-    updateState({ level: nextLevel });
+    updateState({ level: nextLevel, distance: 0 }); // Reset distance for new level
     setShowMap(true);
     setIsPlaying(false);
   };
@@ -142,6 +153,7 @@ export default function HeritageSprint() {
     setLane(1);
     setCoinsInQuestionCycle(0);
     setSpeed(12 + (state.level * 1.5));
+    updateState({ distance: 0 }); // Start level at 0 distance
   };
 
   if (!isLoaded) return null;

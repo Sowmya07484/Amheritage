@@ -8,6 +8,7 @@ export type CharacterType =
 export interface GameState {
   score: number;
   coins: number;
+  distance: number;
   level: number;
   questionsInLevel: number;
   questionsCorrect: number;

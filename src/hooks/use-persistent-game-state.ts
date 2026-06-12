@@ -6,6 +6,7 @@ import { GameState, CharacterType, CHARACTER_PRICE } from '@/lib/game-types';
 const INITIAL_STATE: GameState = {
   score: 0,
   coins: 0,
+  distance: 0,
   level: 1,
   questionsInLevel: 0,
   questionsCorrect: 0,
@@ -20,7 +21,7 @@ export function usePersistentGameState() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('heritage_sprint_v4');
+    const saved = localStorage.getItem('heritage_sprint_v5');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -34,7 +35,7 @@ export function usePersistentGameState() {
 
   useEffect(() => {
     if (isLoaded) {
-      localStorage.setItem('heritage_sprint_v4', JSON.stringify(state));
+      localStorage.setItem('heritage_sprint_v5', JSON.stringify(state));
     }
   }, [state, isLoaded]);
 
@@ -52,6 +53,10 @@ export function usePersistentGameState() {
 
   const addScore = useCallback((amount: number) => {
     setState(prev => ({ ...prev, score: Math.max(0, prev.score + amount) }));
+  }, []);
+
+  const incrementDistance = useCallback((amount: number) => {
+    setState(prev => ({ ...prev, distance: prev.distance + amount }));
   }, []);
 
   const buyCharacter = useCallback((char: CharacterType) => {
@@ -86,6 +91,7 @@ export function usePersistentGameState() {
     updateState,
     earnCoins,
     addScore,
+    incrementDistance,
     buyCharacter,
     selectCharacter,
     resetProgress,
