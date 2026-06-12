@@ -1,10 +1,12 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { generateHeritageQuizQuestion, GenerateHeritageQuizQuestionOutput } from '@/ai/flows/generate-heritage-quiz-question';
 import { THEMATIC_ERAS } from '@/lib/game-types';
+import { STATIC_HERITAGE_QUESTIONS } from '@/lib/static-questions';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, CheckCircle2, XCircle, Info } from 'lucide-react';
 
@@ -22,14 +24,43 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
   useEffect(() => {
     async function fetchQuestion() {
       setLoading(true);
-      const randomEra = THEMATIC_ERAS[Math.floor(Math.random() * THEMATIC_ERAS.length)];
-      try {
-        const result = await generateHeritageQuizQuestion({ level, thematicEra: randomEra });
-        setQuestion(result);
-      } catch (e) {
-        console.error("Failed to load question", e);
-      } finally {
+      
+      // Check if we should use a static question first (based on a pseudo-random index or progression)
+      // For this version, we'll pick from static questions based on level/index to ensure user sees them.
+      const staticIndex = Math.floor(Math.random() * STATIC_HERITAGE_QUESTIONS.length);
+      const useStatic = Math.random() > 0.3 || level <= 3; // High chance for static questions early on
+
+      if (useStatic && STATIC_HERITAGE_QUESTIONS.length > 0) {
+        const q = STATIC_HERITAGE_QUESTIONS[staticIndex];
+        setQuestion({
+          question: q.question,
+          options: q.options as [string, string, string, string],
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation,
+          difficulty: 'Medium',
+          category: q.category
+        });
         setLoading(false);
+      } else {
+        const randomEra = THEMATIC_ERAS[Math.floor(Math.random() * THEMATIC_ERAS.length)];
+        try {
+          const result = await generateHeritageQuizQuestion({ level, thematicEra: randomEra });
+          setQuestion(result);
+        } catch (e) {
+          console.error("Failed to load question", e);
+          // Ultimate fallback to first static question
+          const q = STATIC_HERITAGE_QUESTIONS[0];
+          setQuestion({
+            question: q.question,
+            options: q.options as [string, string, string, string],
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation,
+            difficulty: 'Easy',
+            category: q.category
+          });
+        } finally {
+          setLoading(false);
+        }
       }
     }
     fetchQuestion();
@@ -61,7 +92,6 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-500">
       <Card className="w-full max-w-lg bg-card border-white/10 shadow-2xl relative overflow-hidden">
-        {/* Progress Decoration */}
         <div className="absolute top-0 left-0 w-full h-1.5 flex">
           <div className="h-full bg-primary flex-1" />
           <div className="h-full bg-accent flex-1" />
@@ -89,8 +119,8 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
             let variant: "outline" | "default" | "destructive" | "secondary" = "outline";
             
             if (showExplanation) {
-              if (isCorrect) variant = "default"; // Will show primary blue (Correct)
-              else if (isSelected) variant = "destructive"; // Show red (Incorrect)
+              if (isCorrect) variant = "default";
+              else if (isSelected) variant = "destructive";
             }
 
             return (
