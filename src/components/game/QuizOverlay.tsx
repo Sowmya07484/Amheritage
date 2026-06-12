@@ -16,7 +16,7 @@ interface QuizOverlayProps {
   onAnswer: (correct: boolean) => void;
 }
 
-const TOTAL_TIME = 600; // 10 minutes in seconds
+const TOTAL_TIME = 10; // 10 seconds as requested
 
 export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
   const [question, setQuestion] = useState<GenerateHeritageQuizQuestionOutput | null>(null);
@@ -91,15 +91,14 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
     setSelectedOption(option);
     setShowExplanation(true);
     
+    // Slight delay before continuing to allow reading explanation or seeing the result
     setTimeout(() => {
       onAnswer(option === question?.correctAnswer);
-    }, 3500);
+    }, 2500);
   };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${seconds}s`;
   };
 
   const timerPercentage = (timeLeft / TOTAL_TIME) * 100;
@@ -124,7 +123,7 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
         <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5">
           <div 
             className={`h-full transition-all duration-1000 ease-linear ${
-              timeLeft < 60 ? 'bg-accent' : 'bg-primary'
+              timeLeft < 4 ? 'bg-accent' : 'bg-primary'
             }`}
             style={{ width: `${timerPercentage}%` }}
           />
@@ -133,8 +132,8 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
         <CardHeader className="pt-8 text-center space-y-4">
           <div className="flex justify-between items-center px-2">
              <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/5">
-                <Timer className={`w-4 h-4 ${timeLeft < 60 ? 'text-accent animate-pulse' : 'text-primary'}`} />
-                <span className={`text-sm font-black italic tracking-tighter ${timeLeft < 60 ? 'text-accent' : 'text-white'}`}>
+                <Timer className={`w-4 h-4 ${timeLeft < 4 ? 'text-accent animate-pulse' : 'text-primary'}`} />
+                <span className={`text-sm font-black italic tracking-tighter ${timeLeft < 4 ? 'text-accent' : 'text-white'}`}>
                   {formatTime(timeLeft)}
                 </span>
              </div>
