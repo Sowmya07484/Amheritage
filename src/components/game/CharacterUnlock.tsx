@@ -1,3 +1,4 @@
+
 "use client";
 
 import React from 'react';
@@ -47,6 +48,7 @@ export function CharacterUnlock({ character, onContinue }: CharacterUnlockProps)
                   className="w-40 h-40"
                   style={{
                     backgroundImage: 'url(/trump-sprite.png)',
+                    backgroundColor: '#1e3a8a',
                     backgroundSize: '400% 100%',
                     backgroundPosition: '0% 0%',
                     imageRendering: 'pixelated',
