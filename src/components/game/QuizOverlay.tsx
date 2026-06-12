@@ -8,27 +8,29 @@ import { STATIC_HERITAGE_QUESTIONS } from '@/lib/static-questions';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle2, XCircle, Info } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Loader2, CheckCircle2, XCircle, Info, Timer } from 'lucide-react';
 
 interface QuizOverlayProps {
   level: number;
   onAnswer: (correct: boolean) => void;
 }
 
+const TOTAL_TIME = 600; // 10 minutes in seconds
+
 export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
   const [question, setQuestion] = useState<GenerateHeritageQuizQuestionOutput | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
 
   useEffect(() => {
     async function fetchQuestion() {
       setLoading(true);
       
-      // Check if we should use a static question first (based on a pseudo-random index or progression)
-      // For this version, we'll pick from static questions based on level/index to ensure user sees them.
       const staticIndex = Math.floor(Math.random() * STATIC_HERITAGE_QUESTIONS.length);
-      const useStatic = Math.random() > 0.3 || level <= 3; // High chance for static questions early on
+      const useStatic = Math.random() > 0.3 || level <= 3;
 
       if (useStatic && STATIC_HERITAGE_QUESTIONS.length > 0) {
         const q = STATIC_HERITAGE_QUESTIONS[staticIndex];
@@ -48,7 +50,6 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
           setQuestion(result);
         } catch (e) {
           console.error("Failed to load question", e);
-          // Ultimate fallback to first static question
           const q = STATIC_HERITAGE_QUESTIONS[0];
           setQuestion({
             question: q.question,
@@ -66,15 +67,42 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
     fetchQuestion();
   }, [level]);
 
+  // Timer Logic
+  useEffect(() => {
+    if (loading || selectedOption || !question) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          handleSelect('TIMEOUT_AUTO_FAIL'); // Trigger fail on timeout
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [loading, selectedOption, question]);
+
   const handleSelect = (option: string) => {
     if (selectedOption) return;
+    
     setSelectedOption(option);
     setShowExplanation(true);
     
     setTimeout(() => {
       onAnswer(option === question?.correctAnswer);
-    }, 3000);
+    }, 3500);
   };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const timerPercentage = (timeLeft / TOTAL_TIME) * 100;
 
   if (loading) {
     return (
@@ -92,27 +120,40 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-500">
       <Card className="w-full max-w-lg bg-card border-white/10 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1.5 flex">
-          <div className="h-full bg-primary flex-1" />
-          <div className="h-full bg-accent flex-1" />
-          <div className="h-full bg-white/20 flex-1" />
+        {/* Animated Background Progress for Timer */}
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-white/5">
+          <div 
+            className={`h-full transition-all duration-1000 ease-linear ${
+              timeLeft < 60 ? 'bg-accent' : 'bg-primary'
+            }`}
+            style={{ width: `${timerPercentage}%` }}
+          />
         </div>
 
-        <CardHeader className="pt-8 text-center">
-          <div className="flex justify-center gap-2 mb-2">
-            <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 uppercase tracking-widest text-[8px]">
-              {question.category}
-            </Badge>
-            <Badge variant="outline" className="text-white/40 border-white/10 uppercase tracking-widest text-[8px]">
-              {question.difficulty}
-            </Badge>
+        <CardHeader className="pt-8 text-center space-y-4">
+          <div className="flex justify-between items-center px-2">
+             <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-full border border-white/5">
+                <Timer className={`w-4 h-4 ${timeLeft < 60 ? 'text-accent animate-pulse' : 'text-primary'}`} />
+                <span className={`text-sm font-black italic tracking-tighter ${timeLeft < 60 ? 'text-accent' : 'text-white'}`}>
+                  {formatTime(timeLeft)}
+                </span>
+             </div>
+             <div className="flex gap-2">
+                <Badge variant="secondary" className="bg-primary/20 text-primary border-primary/30 uppercase tracking-widest text-[8px]">
+                  {question.category}
+                </Badge>
+                <Badge variant="outline" className="text-white/40 border-white/10 uppercase tracking-widest text-[8px]">
+                  {question.difficulty}
+                </Badge>
+             </div>
           </div>
+          
           <CardTitle className="text-2xl font-headline font-bold text-white leading-tight">
             {question.question}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="grid gap-3 mt-4">
+        <CardContent className="grid gap-3 mt-2">
           {question.options.map((option, i) => {
             const isCorrect = option === question.correctAnswer;
             const isSelected = option === selectedOption;
@@ -154,7 +195,9 @@ export function QuizOverlay({ level, onAnswer }: QuizOverlayProps) {
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-primary">Did you know?</p>
                   <p className="text-xs text-white/70 leading-relaxed font-medium">
-                    {question.explanation}
+                    {timeLeft === 0 && selectedOption === 'TIMEOUT_AUTO_FAIL' 
+                      ? "Time ran out! You must answer more quickly to protect our heritage."
+                      : question.explanation}
                   </p>
                 </div>
               </div>
