@@ -6,25 +6,25 @@ import { GameWorld } from '@/components/game/GameWorld';
 import { QuizOverlay } from '@/components/game/QuizOverlay';
 import { GameOver } from '@/components/game/GameOver';
 import { LevelComplete } from '@/components/game/LevelComplete';
-import { CharacterUnlock } from '@/components/game/CharacterUnlock';
 import { LevelMap } from '@/components/game/LevelMap';
 import { PauseOverlay } from '@/components/game/PauseOverlay';
+import { StoreOverlay } from '@/components/game/StoreOverlay';
 import { Character } from '@/components/game/Character';
 import { usePersistentGameState } from '@/hooks/use-persistent-game-state';
-import { Lane, QUESTIONS_PER_LEVEL, MAX_LEVELS, CHARACTER_PROGRESSION } from '@/lib/game-types';
+import { Lane, QUESTIONS_PER_LEVEL, MAX_LEVELS } from '@/lib/game-types';
 import { Button } from '@/components/ui/button';
-import { Play, Flag, Star, ChevronLeft, ChevronRight, Map as MapIcon } from 'lucide-react';
+import { Play, Flag, Coins, ChevronLeft, ChevronRight, Map as MapIcon, ShoppingBag } from 'lucide-react';
 
 export default function HeritageSprint() {
-  const { state, updateState, addScore, earnCoins, isLoaded } = usePersistentGameState();
+  const { state, updateState, addScore, earnCoins, buyCharacter, selectCharacter, isLoaded } = usePersistentGameState();
   const [lane, setLane] = useState<Lane>(1);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isQuizActive, setIsQuizActive] = useState(false);
   const [isLevelComplete, setIsLevelComplete] = useState(false);
-  const [isUnlockActive, setIsUnlockActive] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [showStore, setShowStore] = useState(false);
   const [speed, setSpeed] = useState(12);
   const [lastEarnedStars, setLastEarnedStars] = useState(0);
   const [coinsInQuestionCycle, setCoinsInQuestionCycle] = useState(0);
@@ -41,7 +41,7 @@ export default function HeritageSprint() {
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive || isPaused) return;
+      if (!isPlaying || isQuizActive || isGameOver || isLevelComplete || isPaused) return;
       
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') moveLeft();
       if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') moveRight();
@@ -50,14 +50,14 @@ export default function HeritageSprint() {
 
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [isPlaying, isQuizActive, isGameOver, isLevelComplete, isUnlockActive, isPaused, moveLeft, moveRight]);
+  }, [isPlaying, isQuizActive, isGameOver, isLevelComplete, isPaused, moveLeft, moveRight]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   };
 
   const onTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartPos.current || !isPlaying || isQuizActive || isGameOver || isLevelComplete || isUnlockActive || isPaused) return;
+    if (!touchStartPos.current || !isPlaying || isQuizActive || isGameOver || isLevelComplete || isPaused) return;
     const diffX = e.changedTouches[0].clientX - touchStartPos.current.x;
     const diffY = e.changedTouches[0].clientY - touchStartPos.current.y;
     if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
@@ -70,7 +70,6 @@ export default function HeritageSprint() {
     earnCoins(1);
     addScore(10);
     
-    // Trigger question every 10 coins
     setCoinsInQuestionCycle(prev => {
       const next = prev + 1;
       if (next >= 10) {
@@ -89,7 +88,6 @@ export default function HeritageSprint() {
     const nextTotal = state.questionsTotal + 1;
 
     if (nextInLevel >= QUESTIONS_PER_LEVEL) {
-      // 6-7 = 1 star, 8-9 = 2 stars, 10 = 3 stars
       let stars = 0;
       if (nextCorrect === 10) stars = 3;
       else if (nextCorrect >= 8) stars = 2;
@@ -99,22 +97,20 @@ export default function HeritageSprint() {
       setIsLevelComplete(true);
 
       const updatedStarsByLevel = { ...state.starsByLevel, [state.level]: stars };
-      const totalStars = Object.values(updatedStarsByLevel).reduce((a, b) => a + b, 0);
 
       updateState({
         questionsInLevel: 0,
         questionsCorrect: 0,
         questionsTotal: nextTotal,
         score: state.score + (correct ? 100 : 0) + 500,
-        starsByLevel: updatedStarsByLevel,
-        totalStars: totalStars
+        starsByLevel: updatedStarsByLevel
       });
     } else {
       updateState({
         questionsInLevel: nextInLevel,
         questionsCorrect: nextCorrect,
         questionsTotal: nextTotal,
-        score: state.score + (correct ? 100 : -50)
+        score: state.score + (correct ? 100 : 0)
       });
     }
   }, [state, updateState]);
@@ -122,7 +118,6 @@ export default function HeritageSprint() {
   const handleNextLevel = () => {
     const earnedStars = state.starsByLevel[state.level] || 0;
     
-    // Requirement check: Must have at least 2 stars to progress
     if (earnedStars < 2) {
       setIsLevelComplete(false);
       startNewGame();
@@ -131,16 +126,9 @@ export default function HeritageSprint() {
 
     setIsLevelComplete(false);
     const nextLevel = Math.min(MAX_LEVELS, state.level + 1);
-    const isUnlockLevel = CHARACTER_PROGRESSION[nextLevel] && CHARACTER_PROGRESSION[nextLevel] !== state.character;
-    
     updateState({ level: nextLevel });
-    
-    if (isUnlockLevel) {
-      setIsUnlockActive(true);
-    } else {
-      setShowMap(true);
-      setIsPlaying(false);
-    }
+    setShowMap(true);
+    setIsPlaying(false);
   };
 
   const startNewGame = () => {
@@ -149,8 +137,8 @@ export default function HeritageSprint() {
     setIsGameOver(false);
     setIsQuizActive(false);
     setIsLevelComplete(false);
-    setIsUnlockActive(false);
     setShowMap(false);
+    setShowStore(false);
     setLane(1);
     setCoinsInQuestionCycle(0);
     setSpeed(12 + (state.level * 1.5));
@@ -164,7 +152,7 @@ export default function HeritageSprint() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {!isPlaying && !isGameOver && !isLevelComplete && !isQuizActive && !isUnlockActive && (
+      {!isPlaying && !isGameOver && !isLevelComplete && !isQuizActive && (
         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/60 backdrop-blur-xl p-8">
           {showMap ? (
             <div className="flex flex-col items-center gap-8 w-full">
@@ -201,21 +189,31 @@ export default function HeritageSprint() {
                   PLAY
                 </Button>
                 
-                <Button 
-                  variant="outline"
-                  className="w-full h-16 bg-white/5 border-white/10 text-white font-bold italic text-xl rounded-2xl group transition-all"
-                  onClick={() => setShowMap(true)}
-                >
-                  <MapIcon className="w-6 h-6 mr-3" />
-                  VIEW MAP
-                </Button>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button 
+                    variant="outline"
+                    className="h-16 bg-white/5 border-white/10 text-white font-bold italic text-sm rounded-2xl group transition-all"
+                    onClick={() => setShowMap(true)}
+                  >
+                    <MapIcon className="w-5 h-5 mr-2" />
+                    CAMPAIGN
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    className="h-16 bg-white/5 border-white/10 text-white font-bold italic text-sm rounded-2xl group transition-all"
+                    onClick={() => setShowStore(true)}
+                  >
+                    <ShoppingBag className="w-5 h-5 mr-2" />
+                    STORE
+                  </Button>
+                </div>
               </div>
 
               <div className="mt-12 flex gap-4">
                 <div className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10 w-32">
-                    <Star className="w-6 h-6 text-yellow-500 fill-yellow-500 mb-2" />
-                    <p className="text-[10px] font-bold text-white/40 uppercase">Best</p>
-                    <p className="text-xl font-black text-white">{state.bestScore}</p>
+                    <Coins className="w-6 h-6 text-yellow-500 fill-yellow-500 mb-2" />
+                    <p className="text-[10px] font-bold text-white/40 uppercase">Total Coins</p>
+                    <p className="text-xl font-black text-white">{state.coins}</p>
                 </div>
                 <div className="flex flex-col items-center p-4 bg-white/5 rounded-2xl border border-white/10 w-32">
                     <Flag className="w-6 h-6 text-primary mb-2" />
@@ -238,14 +236,15 @@ export default function HeritageSprint() {
         <GameWorld 
           lane={lane} 
           speed={speed} 
-          isPaused={isQuizActive || isLevelComplete || isUnlockActive || !isPlaying || isGameOver || isPaused}
+          isPaused={isQuizActive || isLevelComplete || !isPlaying || isGameOver || isPaused}
           onCoinCollected={onCoinCollected}
         />
         
-        {isPlaying && !isGameOver && !isLevelComplete && !isUnlockActive && !showMap && (
+        {isPlaying && !isGameOver && !isLevelComplete && !showMap && (
           <Character 
             lane={lane} 
             isMoving={!isPaused && !isQuizActive} 
+            type={state.character}
           />
         )}
       </div>
@@ -258,6 +257,17 @@ export default function HeritageSprint() {
             setIsPlaying(false);
             setIsPaused(false);
           }}
+        />
+      )}
+
+      {showStore && (
+        <StoreOverlay 
+          coins={state.coins}
+          unlockedCharacters={state.unlockedCharacters}
+          selectedCharacter={state.character}
+          onClose={() => setShowStore(false)}
+          onBuy={buyCharacter}
+          onSelect={selectCharacter}
         />
       )}
 
@@ -278,17 +288,6 @@ export default function HeritageSprint() {
         />
       )}
 
-      {isUnlockActive && (
-        <CharacterUnlock 
-          character={state.character} 
-          onContinue={() => {
-            setIsUnlockActive(false);
-            setShowMap(true);
-            setIsPlaying(false);
-          }} 
-        />
-      )}
-
       {isGameOver && (
         <GameOver 
           state={state} 
@@ -296,7 +295,7 @@ export default function HeritageSprint() {
         />
       )}
 
-      {isPlaying && !isQuizActive && !isLevelComplete && !isGameOver && !isUnlockActive && !isPaused && (
+      {isPlaying && !isQuizActive && !isLevelComplete && !isGameOver && !isPaused && (
         <div className="absolute inset-x-0 bottom-12 z-50 px-6 flex justify-between pointer-events-none">
           <Button 
             className="w-24 h-24 rounded-full bg-primary/30 backdrop-blur-xl border-4 border-primary/50 text-white pointer-events-auto active:scale-90 active:bg-primary/60 transition-all flex items-center justify-center shadow-[0_0_30px_rgba(37,99,235,0.4)]"
