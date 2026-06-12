@@ -1,43 +1,20 @@
-
 "use client";
 
 import React, { useRef, useEffect, useCallback } from 'react';
-import { Lane, Obstacle, Collectible } from '@/lib/game-types';
+import { Lane, Collectible } from '@/lib/game-types';
 
 interface GameWorldProps {
   lane: Lane;
   speed: number;
   isPaused: boolean;
-  onCollision: () => void;
-  onCheckpoint: () => void;
   onCoinCollected: () => void;
 }
 
-const CHECKPOINT_INTERVAL = 5000;
-
-export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, onCoinCollected }: GameWorldProps) {
+export function GameWorld({ lane, speed, isPaused, onCoinCollected }: GameWorldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const obstaclesRef = useRef<Obstacle[]>([]);
   const collectiblesRef = useRef<Collectible[]>([]);
-  const distanceRef = useRef(0);
-  const nextCheckpointRef = useRef(CHECKPOINT_INTERVAL); 
   const lastFrameTimeRef = useRef(0);
   const currentLaneXRef = useRef(1); 
-
-  const spawnObstacle = useCallback(() => {
-    const types: Obstacle['type'][] = ['monument', 'flag', 'building', 'roadblock'];
-    const id = Math.random().toString(36).substring(7);
-    const type = types[Math.floor(Math.random() * types.length)];
-    const obstacleLane = Math.floor(Math.random() * 3) as Lane;
-    
-    obstaclesRef.current.push({
-      id,
-      type,
-      lane: obstacleLane,
-      z: 4000,
-      passed: false
-    });
-  }, []);
 
   const spawnCoin = useCallback(() => {
     const id = Math.random().toString(36).substring(7);
@@ -71,38 +48,24 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
       }
 
       const moveStep = (speed * (dt / 16)) * 1.5;
-      distanceRef.current += moveStep;
       
       const targetLaneX = lane;
       currentLaneXRef.current += (targetLaneX - currentLaneXRef.current) * 0.2;
 
-      obstaclesRef.current.forEach(obs => {
-        obs.z -= moveStep;
-        if (!obs.passed && obs.z < 350 && obs.z > 150 && Math.abs(obs.lane - currentLaneXRef.current) < 0.5) {
-          obs.passed = true;
-          onCollision();
-        }
-        if (obs.z < 0) obs.passed = true;
-      });
-
       collectiblesRef.current.forEach(col => {
         col.z -= moveStep;
+        // Collision detection for coins
         if (!col.collected && col.z < 450 && col.z > 100 && Math.abs(col.lane - currentLaneXRef.current) < 0.7) {
           col.collected = true;
           onCoinCollected();
         }
       });
 
-      obstaclesRef.current = obstaclesRef.current.filter(obs => obs.z > -100);
+      // Cleanup off-screen or collected items
       collectiblesRef.current = collectiblesRef.current.filter(col => col.z > -100 && !col.collected);
 
-      if (Math.random() < 0.02) spawnObstacle();
-      if (Math.random() < 0.04) spawnCoin();
-
-      if (distanceRef.current >= nextCheckpointRef.current) {
-        nextCheckpointRef.current += CHECKPOINT_INTERVAL;
-        onCheckpoint();
-      }
+      // Spawn coins frequently
+      if (Math.random() < 0.08) spawnCoin();
 
       const w = canvas.width;
       const h = canvas.height;
@@ -110,21 +73,21 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
 
       const horizon = h * 0.45;
       
-      // Sky
+      // Sky - Dark Patriotic Night
       const skyGrad = ctx.createLinearGradient(0, 0, 0, horizon);
       skyGrad.addColorStop(0, '#020617');
       skyGrad.addColorStop(1, '#0F172A');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, w, horizon);
 
-      // Road
+      // Road - Deep Indigo
       const roadGrad = ctx.createLinearGradient(0, horizon, 0, h);
       roadGrad.addColorStop(0, '#1E1B4B');
       roadGrad.addColorStop(1, '#020617');
       ctx.fillStyle = roadGrad;
       ctx.fillRect(0, horizon, w, h - horizon);
 
-      // Lane Lines
+      // Lane Lines - Glowing Blue
       ctx.strokeStyle = '#2563EB44';
       ctx.lineWidth = 4;
       for (let i = 0; i <= 3; i++) {
@@ -136,7 +99,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         ctx.stroke();
       }
 
-      // Draw Collectibles
+      // Draw Collectibles (Coins)
       collectiblesRef.current.forEach(col => {
         const factor = 1 - (col.z / 4000);
         if (factor < 0) return;
@@ -144,42 +107,22 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         const colScale = Math.pow(factor, 2) * 2.5;
         const laneX = (w / 2) + (col.lane - 1) * (w * 0.6) * factor;
 
+        // Golden Coin Visuals
         ctx.fillStyle = '#FBBF24';
         ctx.shadowBlur = 20 * colScale;
         ctx.shadowColor = '#F59E0B';
         ctx.beginPath();
         ctx.arc(laneX, colY - 20 * colScale, 15 * colScale, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
-      });
-
-      // Draw Obstacles
-      obstaclesRef.current.forEach(obs => {
-        const factor = 1 - (obs.z / 4000);
-        if (factor < 0) return;
-        const obsY = horizon + (h - horizon) * Math.pow(factor, 2.5);
-        const obsScale = Math.pow(factor, 2) * 3.5;
-        const laneX = (w / 2) + (obs.lane - 1) * (w * 0.6) * factor;
-
-        ctx.save();
-        ctx.translate(laneX, obsY);
         
-        if (obs.type === 'roadblock') {
-          ctx.fillStyle = '#EF4444';
-          ctx.fillRect(-30 * obsScale, -40 * obsScale, 60 * obsScale, 40 * obsScale);
-          ctx.strokeStyle = '#FFFFFF';
-          ctx.lineWidth = 2 * obsScale;
-          ctx.strokeRect(-30 * obsScale, -40 * obsScale, 60 * obsScale, 40 * obsScale);
-        } else if (obs.type === 'flag') {
-          ctx.fillStyle = '#64748b';
-          ctx.fillRect(-2 * obsScale, -100 * obsScale, 4 * obsScale, 100 * obsScale);
-          ctx.fillStyle = '#EF4444';
-          ctx.fillRect(0, -100 * obsScale, 50 * obsScale, 30 * obsScale);
-        } else {
-          ctx.fillStyle = '#f8fafc';
-          ctx.fillRect(-25 * obsScale, -50 * obsScale, 50 * obsScale, 50 * obsScale);
-        }
-        ctx.restore();
+        // Inner detail
+        ctx.strokeStyle = '#92400E';
+        ctx.lineWidth = 2 * colScale;
+        ctx.beginPath();
+        ctx.arc(laneX, colY - 20 * colScale, 10 * colScale, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.shadowBlur = 0;
       });
 
       frameId = requestAnimationFrame(render);
@@ -187,7 +130,7 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
 
     frameId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(frameId);
-  }, [isPaused, lane, speed, onCollision, onCheckpoint, onCoinCollected, spawnObstacle, spawnCoin]);
+  }, [isPaused, lane, speed, onCoinCollected, spawnCoin]);
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-[#020617]">
@@ -198,18 +141,19 @@ export function GameWorld({ lane, speed, isPaused, onCollision, onCheckpoint, on
         className="w-full h-full object-cover"
       />
       
+      {/* Dynamic Speed Lines for Atmosphere */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[...Array(15)].map((_, i) => (
           <div 
             key={i}
-            className="absolute bg-white/20"
+            className="absolute bg-white/10"
             style={{
-              width: '2px',
-              height: Math.random() * 200 + 100 + 'px',
+              width: '1px',
+              height: Math.random() * 300 + 100 + 'px',
               left: Math.random() * 100 + '%',
-              top: '-300px',
-              animation: `fall ${Math.random() * 0.2 + 0.1}s linear infinite`,
-              opacity: Math.random() * 0.5
+              top: '-400px',
+              animation: `fall ${Math.random() * 0.2 + 0.05}s linear infinite`,
+              opacity: Math.random() * 0.3
             }}
           />
         ))}

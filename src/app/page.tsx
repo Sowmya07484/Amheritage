@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
@@ -28,6 +27,7 @@ export default function HeritageSprint() {
   const [showMap, setShowMap] = useState(false);
   const [speed, setSpeed] = useState(12);
   const [lastEarnedStars, setLastEarnedStars] = useState(0);
+  const [coinsInQuestionCycle, setCoinsInQuestionCycle] = useState(0);
 
   const touchStartPos = useRef<{ x: number, y: number } | null>(null);
 
@@ -66,18 +66,20 @@ export default function HeritageSprint() {
     touchStartPos.current = null;
   };
 
-  const onCollision = useCallback(() => {
-    addScore(-5);
-  }, [addScore]);
-
   const onCoinCollected = useCallback(() => {
     earnCoins(1);
     addScore(10);
+    
+    // Trigger question every 10 coins
+    setCoinsInQuestionCycle(prev => {
+      const next = prev + 1;
+      if (next >= 10) {
+        setIsQuizActive(true);
+        return 0;
+      }
+      return next;
+    });
   }, [earnCoins, addScore]);
-
-  const onCheckpoint = useCallback(() => {
-    setIsQuizActive(true);
-  }, []);
 
   const onQuizAnswer = useCallback((correct: boolean) => {
     setIsQuizActive(false);
@@ -87,6 +89,7 @@ export default function HeritageSprint() {
     const nextTotal = state.questionsTotal + 1;
 
     if (nextInLevel >= QUESTIONS_PER_LEVEL) {
+      // 6-7 = 1 star, 8-9 = 2 stars, 10 = 3 stars
       let stars = 0;
       if (nextCorrect === 10) stars = 3;
       else if (nextCorrect >= 8) stars = 2;
@@ -119,6 +122,7 @@ export default function HeritageSprint() {
   const handleNextLevel = () => {
     const earnedStars = state.starsByLevel[state.level] || 0;
     
+    // Requirement check: Must have at least 2 stars to progress
     if (earnedStars < 2) {
       setIsLevelComplete(false);
       startNewGame();
@@ -148,6 +152,7 @@ export default function HeritageSprint() {
     setIsUnlockActive(false);
     setShowMap(false);
     setLane(1);
+    setCoinsInQuestionCycle(0);
     setSpeed(12 + (state.level * 1.5));
   };
 
@@ -234,12 +239,9 @@ export default function HeritageSprint() {
           lane={lane} 
           speed={speed} 
           isPaused={isQuizActive || isLevelComplete || isUnlockActive || !isPlaying || isGameOver || isPaused}
-          onCollision={onCollision}
-          onCheckpoint={onCheckpoint}
           onCoinCollected={onCoinCollected}
         />
         
-        {/* Character is now explicitly rendered on top of the world for perfect visibility */}
         {isPlaying && !isGameOver && !isLevelComplete && !isUnlockActive && !showMap && (
           <Character 
             lane={lane} 
