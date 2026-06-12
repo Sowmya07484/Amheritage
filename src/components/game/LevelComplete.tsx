@@ -20,7 +20,7 @@ export function LevelComplete({ level, score, stars, onNext }: LevelCompleteProp
     if (stars === 3) return "EXCELLENT";
     if (stars === 2) return "NICE";
     if (stars === 1) return "GOOD";
-    return "INSUFFICIENT MERIT";
+    return "BETTER LUCK NEXT TIME";
   };
 
   return (
