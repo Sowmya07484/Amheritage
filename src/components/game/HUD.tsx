@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Heart, Coins, Trophy, Zap } from 'lucide-react';
+import { Heart, Coins, Trophy, Zap, Star } from 'lucide-react';
 import { Progress } from "@/components/ui/progress";
 import { GameState } from '@/lib/game-types';
 
@@ -16,60 +16,57 @@ export function HUD({ state, regenTimeFormatted, isPaused }: HUDProps) {
 
   return (
     <div className="absolute top-0 left-0 w-full p-4 flex flex-col gap-4 pointer-events-none z-10">
-      {/* Top Bar */}
       <div className="flex justify-between items-start">
-        {/* Left: Hearts & Timer */}
-        <div className="flex flex-col gap-1">
-          <div className="flex gap-1.5 items-center bg-black/40 backdrop-blur-md px-3 py-2 rounded-full border border-white/10">
+        {/* Stats Left */}
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 items-center bg-black/60 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 shadow-lg">
             {[...Array(3)].map((_, i) => (
               <Heart 
                 key={i} 
-                className={`w-5 h-5 transition-all duration-300 ${i < state.hearts ? 'fill-accent text-accent' : 'text-white/20 fill-transparent'}`} 
+                className={`w-6 h-6 transition-all duration-300 drop-shadow-sm ${i < state.hearts ? 'fill-accent text-accent animate-pulse' : 'text-white/10 fill-transparent'}`} 
               />
             ))}
             {state.hearts < 3 && (
-              <span className="text-[10px] font-headline font-bold text-white/70 ml-2">
+              <span className="text-xs font-bold text-white/80 ml-2 font-mono">
                 {regenTimeFormatted}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-black/40 backdrop-blur-md rounded-full border border-white/10 self-start">
-            <Coins className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-            <span className="text-xs font-headline font-bold text-white">{state.coins}</span>
+          <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/20 backdrop-blur-md rounded-2xl border border-yellow-500/40 shadow-lg self-start">
+            <Coins className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+            <span className="text-lg font-black text-white">{state.coins}</span>
           </div>
         </div>
 
-        {/* Center: Score */}
+        {/* Score Center */}
         <div className="flex flex-col items-center">
-          <div className="text-4xl font-headline font-black text-white text-glow drop-shadow-lg tracking-tighter italic">
+          <div className="text-5xl font-black text-white text-glow drop-shadow-[0_4px_8px_rgba(37,99,235,0.5)] italic tracking-tighter">
             {state.score.toLocaleString()}
           </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-headline font-bold uppercase tracking-widest text-primary-foreground/60">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">
             <Zap className="w-3 h-3 text-primary fill-primary" /> Distance
           </div>
         </div>
 
-        {/* Right: Level & Best */}
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-2 px-4 py-2 bg-primary/20 backdrop-blur-md border border-primary/40 rounded-xl">
-            <div className="flex flex-col items-end">
-              <span className="text-[8px] font-bold uppercase tracking-widest text-primary-foreground/50">Level</span>
-              <span className="text-xl font-headline font-black text-white italic">{state.level}</span>
-            </div>
+        {/* Level Right */}
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex flex-col items-end bg-primary/20 backdrop-blur-md border border-primary/40 p-3 rounded-2xl shadow-lg">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary-foreground/50">Level</span>
+            <span className="text-3xl font-black text-white italic leading-none">{state.level}</span>
           </div>
-          <div className="flex items-center gap-1 text-[10px] font-headline font-bold text-white/40">
-            <Trophy className="w-3 h-3" /> {state.bestScore}
+          <div className="flex items-center gap-1.5 text-xs font-bold text-white/60 bg-black/40 px-3 py-1 rounded-full">
+            <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" /> {state.bestScore}
           </div>
         </div>
       </div>
 
-      {/* Level Progress Bar */}
-      <div className="w-full max-w-md mx-auto px-4 mt-2">
-        <div className="flex justify-between items-end mb-1 px-1">
-          <span className="text-[10px] font-headline font-bold text-white/50 uppercase tracking-widest">Questions {state.questionsCorrect}/{state.questionsTotal}</span>
-          <span className="text-[10px] font-headline font-bold text-white/50 uppercase tracking-widest">{state.character}</span>
+      {/* Level Progress */}
+      <div className="w-full max-w-sm mx-auto mt-4 transform translate-y-[-10px]">
+        <div className="flex justify-between items-end mb-1.5 px-2">
+          <span className="text-[10px] font-bold text-white/70 uppercase tracking-widest">Questions {state.questionsCorrect}/{state.questionsTotal}</span>
+          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">{state.character}</span>
         </div>
-        <Progress value={levelProgress} className="h-1.5 bg-white/10 border-none" />
+        <Progress value={levelProgress} className="h-3 bg-white/10 border border-white/5 rounded-full" />
       </div>
     </div>
   );

@@ -1,10 +1,10 @@
 export type Lane = 0 | 1 | 2;
 
 export type CharacterType = 
+  | 'The Patriot' 
   | 'Founding Father' 
-  | 'Patriotic Superhero' 
   | 'Historical Leader' 
-  | 'Pop Star' 
+  | 'Liberty Belle' 
   | 'Action Hero';
 
 export interface GameState {
@@ -20,13 +20,12 @@ export interface GameState {
   unlockedBadges: string[];
 }
 
-export interface PowerUp {
+export interface Collectible {
   id: string;
-  name: string;
-  type: 'shield' | 'boost' | 'magnet' | 'star' | 'freeze';
-  duration: number; // ms
-  active: boolean;
-  timeLeft: number;
+  type: 'coin' | 'powerup';
+  lane: Lane;
+  z: number;
+  collected: boolean;
 }
 
 export interface Obstacle {
@@ -47,13 +46,15 @@ export const THEMATIC_ERAS = [
   "Space Exploration",
   "U.S. Presidents",
   "American Culture",
-  "Important Historical Events"
+  "Important Historical Events",
+  "American Geography",
+  "State Capitals"
 ];
 
 export const CHARACTER_PROGRESSION: Record<number, CharacterType> = {
-  1: 'Founding Father',
-  6: 'Patriotic Superhero',
+  1: 'The Patriot',
+  6: 'Founding Father',
   11: 'Historical Leader',
-  16: 'Pop Star',
+  16: 'Liberty Belle',
   21: 'Action Hero'
 };
