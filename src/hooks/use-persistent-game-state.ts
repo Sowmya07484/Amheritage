@@ -17,7 +17,7 @@ const INITIAL_STATE: GameState = {
 };
 
 const HEARTS_MAX = 3;
-const REGEN_TIME_MS = 20 * 60 * 1000; // 20 minutes
+const REGEN_TIME_MS = 30 * 1000; // Updated to 30 seconds
 
 export function usePersistentGameState() {
   const [state, setState] = useState<GameState>(INITIAL_STATE);
@@ -63,7 +63,7 @@ export function usePersistentGameState() {
           }));
         }
       }
-    }, 5000); // Check every 5 seconds
+    }, 1000); // Check every second for smoother countdown
 
     return () => clearInterval(interval);
   }, [state.hearts, state.lastHeartRegenTime, isLoaded]);
@@ -76,6 +76,11 @@ export function usePersistentGameState() {
       const levelBase = Math.floor((newState.level - 1) / 5) * 5 + 1;
       const char = CHARACTER_PROGRESSION[levelBase as keyof typeof CHARACTER_PROGRESSION] || 'Founding Father';
       newState.character = char as CharacterType;
+
+      // Update best score if needed
+      if (newState.score > newState.bestScore) {
+        newState.bestScore = newState.score;
+      }
       
       return newState;
     });
